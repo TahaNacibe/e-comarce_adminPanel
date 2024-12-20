@@ -9,14 +9,22 @@ export default function Home() {
   
 
   const checkIfUserAuthorized = () => {
-    // redirect to sign in if not signed yet
-    if (!session) redirect("/signInPage")
-    // check if user authorized
-    return session?.user.role === "ADMIN" || session?.user.role === "SUB_ADMIN"
+    if (session) {
+      console.log("session in main page is: ",session)
+      // redirect to sign in if not signed yet
+      if (!session) redirect("/signInPage")
+      // check if user authorized
+      return session?.user.role === "ADMIN" || session?.user.role === "SUB_ADMIN"
+    }
   }
 
-  if (!checkIfUserAuthorized()) {
-    redirect("/UnauthorizedAccessPage")
+  if (session) {
+    if (!checkIfUserAuthorized()) {
+      console.log("session in main page is: ",session)
+      redirect("/UnauthorizedAccessPage")
+    } else {
+      redirect("/admin_panel")
+    }
   }
 
 

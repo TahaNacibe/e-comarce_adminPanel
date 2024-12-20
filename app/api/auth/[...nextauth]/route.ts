@@ -16,10 +16,7 @@ const authOptions: AuthOptions = {
   session: {
     strategy: "jwt",
   },
-  pages: {
-    
-  },
-
+  pages: {},
   callbacks: {
     async signIn({ user, account, profile }) {
       if (user) {
@@ -27,7 +24,7 @@ const authOptions: AuthOptions = {
           where: { email: user.email! },
         });
 
-        // don't even sign in if it's not authorized
+        // Check for authorized roles
         if (dbUser?.role !== "ADMIN" && dbUser?.role !== "SUB_ADMIN") {
           return "/UnauthorizedAccessPage";
         }
@@ -46,28 +43,26 @@ const authOptions: AuthOptions = {
       return true;
     },
 
-
-
-    async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
-      }
-      return session;
-    },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       if (user) {
-        // Get user from database to include role
         const dbUser = await prisma.user.findUnique({
           where: { email: user.email! },
         });
-        
+
         if (dbUser) {
           token.id = dbUser.id;
           token.role = dbUser.role;
         }
       }
       return token;
+    },
+
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
+      }
+      return session;
     },
   },
 };
