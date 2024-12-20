@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+type ProductsProperties {
+  label          String
+  options        String[]
+  selectedOption Json?
+}
+
+type OrderProductMetadata {
+  productId   String @db.ObjectId
+  productName String
+  quantity    Int
+  unitePrice  Float
+}
+
+type OrderMetaData {
+  productsMetaDataList OrderProductMetadata[]
+  totalPrice           Float
+  currency             String
+}
+
+model Orders {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // User Information
+  userId String 
+  owner  User  @relation(fields: [userId], references: [id])
+
+  // Contact Details
+  name        String
+  email       String
+  phoneNumber String
+
+  // Address Information
+  address     String
+  houseNumber String
+  city        String
+  postalCode  String
+
+  // Order Details
+  status   String
+  verified Boolean @default(false)
+
+  // Product Relations
+  orderMetaData OrderMetaData
+
+  @@index([userId])
+  @@index([email])
+  @@index([status])
+}
+
+model Products {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Basic Product Info
+  name        String
+  description String
+  properties  ProductsProperties
+
+  // Pricing
+  price         Float
+  discountPrice Float?
+  isInDiscount  Boolean @default(false)
+
+  // Inventory
+  stockCount Int     @default(0)
+  soldCount  Int     @default(0)
+  isVisible  Boolean @default(true)
+
+  // Images
+  bigImageUrl    String
+  smallImageUrls String[]
+
+  // Relations
+  tagIds   String[] @db.ObjectId
+  tags     Tags[]   @relation(fields: [tagIds], references: [id])
+  orderIds String[] @db.ObjectId
+
+  @@index([name])
+  @@index([isVisible])
+  @@index([isInDiscount])
+}
+
+model Tags {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String
+  parentTag   Tags? @relation("ParentTagKey",fields: [parentId],references: [id], onDelete: NoAction, onUpdate: NoAction)
+  parent  Tags? @relation("ParentTagKey")
+  parentId    String? @unique  @db.ObjectId 
+  productsIds String[] @db.ObjectId 
+  product Products[] @relation(fields: [productsIds],references: [id])
+
+
+  @@index([name])
+}
+
+
+
+model User {
+   id            String    @id @default(cuid()) @map("_id")
+  name          String?
+  email         String?   @unique
+  image         String?
+  role         String   @default("user")
+  emailVerified DateTime?
+  Account       Account[]
+  Session       Session[]
+  orders       Orders[]
+
+  @@index([role])
+}
+
+model Account {
+  id                 String  @id @default(cuid()) @map("_id")
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+  oauth_token_secret String?
+  oauth_token        String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid()) @map("_id")
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
