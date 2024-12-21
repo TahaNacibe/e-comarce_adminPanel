@@ -12,7 +12,7 @@ export default function Home() {
     if (session) {
       console.log("session in main page is: ",session)
       // redirect to sign in if not signed yet
-      if (!session) redirect("/signInPage")
+      if (!session) redirect("/sign-in")
       // check if user authorized
       return session?.user.role === "ADMIN" || session?.user.role === "SUB_ADMIN"
     }
@@ -21,9 +21,9 @@ export default function Home() {
   if (session) {
     if (!checkIfUserAuthorized()) {
       console.log("session in main page is: ",session)
-      redirect("/UnauthorizedAccessPage")
+      redirect("/unauthorized-access")
     } else {
-      redirect("/admin_panel")
+      redirect("/admin")
     }
   }
 

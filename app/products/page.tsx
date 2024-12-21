@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Plus, MoreVertical, Search, Eye, EyeOff, ArrowUpDown, Package } from 'lucide-react';
+import { Plus, MoreVertical, Search, Eye, EyeOff, ArrowUpDown, Package, TrashIcon, Layers2, Edit2, RefreshCcw } from 'lucide-react';
 
 // UI Components
 import {
@@ -25,6 +25,10 @@ import { Badge } from "@/components/ui/badge";
 import ProductsDetailsSheet from './components/detailsSheet';
 import { Product } from './types/pageTypes';
 import PaginationWidget from '../components/pagination_widget';
+import { ConfirmActionDialog } from '../components/confirmActionDialog';
+import ProductsServices from '../services/products/productsServices';
+import { useToast } from '@/hooks/use-toast';
+import ToastItem from '../components/taostItem';
 
 // consts for easy access
 const IMAGE_WIDTH = 48;
@@ -35,8 +39,10 @@ const LOW_STOCK_THRESHOLD = 10;
 
 // Sub-components for better organization
 const ProductImage = ({ url, alt }: { url: string, alt: string }) => {
+  //* handle image error
   const [imageUrl, setUrl] = useState(url);
 
+  //* image widget
   return (
     <div className="h-12 w-12 rounded-lg overflow-hidden bg-muted">
     <Image
@@ -51,9 +57,33 @@ const ProductImage = ({ url, alt }: { url: string, alt: string }) => {
   )
 }
   
-const ProductTags = ({tags}:{tags:Product["tags"]}) =>(
+
+//* handle response 
+const handleResponseFromBackEnd = (toast:any,response?: { success: boolean, message: string, data?: any }) => {
+
+  if (!response) return;
+  // logic
+  if (response.success) {
+    // success toast 
+    toast({
+      title: "Completed",
+      description: response.message,
+    })
+  } else {
+    // fails toast
+    toast({
+      variant: "destructive",
+      title: "Something went wrong",
+      description: response.message,
+    })
+  }
+
+}
+
+//* pricing tag widget
+const ProductTags = ({ tags }: { tags: Product["tags"] }) => (
   <div className="flex gap-2 mt-1">
-    {tags.map((tag) => (
+    {tags && tags.length > 0 && tags.map((tag) => (
       <Badge key={tag.id} variant="outline" className="text-xs">
         {tag.name}
       </Badge>
@@ -62,6 +92,8 @@ const ProductTags = ({tags}:{tags:Product["tags"]}) =>(
 );
 
 
+
+//* price display widget
 const PriceDisplay = ({ price, discountPrice, isInDiscount, formatCurrency }
     : { price: number, discountPrice?: number, isInDiscount: boolean, formatCurrency: (amount: number) => string }) => (
   <div className="flex flex-col">
@@ -80,6 +112,7 @@ const PriceDisplay = ({ price, discountPrice, isInDiscount, formatCurrency }
   </div>
 );
 
+//* inventory status widget
 const InventoryStatus = ({ stockCount, soldCount }: { stockCount: number; soldCount: number }) => {
     
   //* getStatusBadge function return the stock case badge
@@ -103,6 +136,7 @@ const InventoryStatus = ({ stockCount, soldCount }: { stockCount: number; soldCo
   );
 };
 
+//* loading row widget
 const LoadingRow = () => (
   <TableRow>
     <TableCell colSpan={COLUMNS_SPAN}>
@@ -113,6 +147,7 @@ const LoadingRow = () => (
   </TableRow>
 );
 
+//* empty state widget
 const EmptyState = () => (
   <TableRow>
     <TableCell colSpan={COLUMNS_SPAN}>
@@ -126,102 +161,147 @@ const EmptyState = () => (
   </TableRow>
 );
 
+
+//* dropdown menu widget for extra actions
+const DropDownMenu = ({ productId, productServices, setFilteredProduct ,setTotalProductsCount, fastRefetch,toast}
+  : { productId: string, productServices: ProductsServices, setFilteredProduct: any, setTotalProductsCount:any,fastRefetch:any,toast:any }) => {
+
+
+  // ui tree
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+          <MoreVertical className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>Fast Action</DropdownMenuLabel>
+        <DropdownMenuItem asChild>
+          <Button variant={"ghost"} className='w-full text-left flex justify-start '>
+             <Edit2 />
+          Edit Product
+          </Button>
+         </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+        <ConfirmActionDialog
+            title="Duplicate Product"
+            description="Are you sure you want to Duplicate this product?."
+            action={() =>
+              productServices.duplicateProductInDb({ productId, updateDataTable: fastRefetch }).then((response) => {
+                handleResponseFromBackEnd(toast,response)
+              })}
+            trigger={
+              <Button variant={"ghost"} className='w-full text-left flex justify-start border-transparent'>
+            <Layers2 />
+          Duplicate
+          </Button>
+            }
+          />
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <ConfirmActionDialog
+            title="Delete Product"
+            description="Are you sure you want to delete this product? This action cannot be undone."
+            action={() => {
+              productServices.deleteProductFromDb({ productId, setFilteredProducts: setFilteredProduct, setTotalProductsCount })
+                .then((response) => handleResponseFromBackEnd(toast,response));
+            }}
+            trigger={
+              <Button
+                variant={"outline"} className="text-red-900 w-full text-left  hover:text-red-900">
+                <TrashIcon />
+                Delete Product
+              </Button>
+            }
+          />
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+
+
+
+//* main component
 const ProductsPage = () => {
   // State management
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [products, setProducts] = useState<Product[]>([]);
-const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [pagesCount, setPagesCount] = useState(0)
   const [activePageIndex, setActivePageIndex] = useState(1)
   const [totalProductsCount, setTotalProductsCount] = useState(0)
+  const [productsAreInDescOrder, setProductsAreInDescOrder] = useState(true)
 
+  // instances
+  const productsServices = new ProductsServices();
 
-  // Effects
-  const loadProducts = async ({activePage}:{activePage:number}) => {
-      try {
-        const response = await  fetch(`/api/products?activePage=${activePage}`)
-        if (response.ok) {
-            const data = await response.json()
-            setProducts(data.message); 
-          setFilteredProducts(data.message);
-          setTotalProductsCount(data.totalProductsCount);
-            setPagesCount(data.totalPages)
-        }
-        
-        // update loading state
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Failed to load products:', error);
-      setIsLoading(false);
-    }
-    };
-
-
-    // fetch the data corresponding to the new page
-      const handleDisplayItemsChange = async (newPage: number,searchQuery: string | null = null) => {
-          try {
-            setIsLoading(true);
-            const response = await fetch(`/api/products?page=${newPage}&searchQuery=${searchQuery}`);
-            if (response.ok) {
-              const data = await response.json();
-                setProducts(data.message);
-                setFilteredProducts(data.message);
-                setActivePageIndex(data.currentPage);
-                setPagesCount(data.totalPages);
-            }
-        } catch (error) {
-            console.error("Failed to fetch products:", error);
-        } finally {
-              setIsLoading(false);
-        }
-    };
+      // hooks
+      const { toast } = useToast()
     
-    
+  const quickLoadAndReloadForProducts = () => {
+    productsServices.loadProducts({
+      activePage: 0,
+      setProducts,
+      setFilteredProducts,
+      setTotalProductsCount,
+      productsAreInDescOrder,
+      setPagesCount,
+      setIsLoading
+    }).then((response) => handleResponseFromBackEnd(toast,response));
+  }
 
   useEffect(() => {
-    loadProducts({activePage:0});
+    // initial load for products list
+    quickLoadAndReloadForProducts()
   }, []);
     
     
-  // Handlers
+  // Handle the search input change and update results
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setActivePageIndex(1)
     setIsLoading(true);
     setSearchQuery(e.target.value);
-     handleDisplayItemsChange(1, e.target.value);
+    productsServices.handleDisplayItemsChange({ newPage: 1, searchQuery: e.target.value, setIsLoading, setProducts, setFilteredProducts, setActivePageIndex, setPagesCount })
+      .then((response) => handleResponseFromBackEnd(toast,response));
     };
+    
     
 
 
-  const handleVisibilityToggle = (productId: string, currentState: boolean): void => {
-    // In real app, would call API
-    console.log(`Toggling visibility for product ${productId}`);
-    };
-    
-
-
-
+  // Handle the product details sheet visibility
   const handleProductDetails = (product: Product): void => {
     setSelectedProduct(product);
     setIsDetailsOpen(true);
-    };
+  };
+  
+
+  // handle order state switch
+  const switchOrderState = () => {
+    setIsLoading(true)
+    setActivePageIndex(1)
+    setProductsAreInDescOrder(prev => !prev)
+    quickLoadAndReloadForProducts()
+  }
     
-
-
-
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat("fr-FR", {
-      style: 'currency',
-      currency: 'DZD'
-    }).format(amount);
+      // handle item visibility state change
+  const handleVisibilityToggle = async (product: Product) => {
+    product.isVisible = !product.isVisible;
+    const response = await productsServices.editProductInDb({ product })
+    handleResponseFromBackEnd(toast,response)
+    if (!response || !response.success) return;
+    const updatedProduct = response.data
+    setFilteredProducts(prev => prev.map((item) => item.id == product.id? updatedProduct : item))
     };
-    
 
 
-
+  // UI tree
   return (
     <div className=" mx-auto">
       <Card className="border-transparent shadow-sm h-screen">
@@ -258,23 +338,38 @@ const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
                 onChange={handleSearchChange}
               />
                       </div>
-           
-                     
           </div>
+
+
           {/* a section title */}
           <div className='flex justify-between  pb-2'>
           <div className="flex items-center gap-2">
             <h3 className="text-medium font-light">All Products</h3>
             <Badge variant={"outline"}>{totalProductsCount}</Badge>
             </div>
-             {/* pagination */}
+
+
+            {/* pagination and refresh button */}
+            <div className='flex gap-2'>
+              {/* refresh button */}
+              <Button
+                onClick={() => quickLoadAndReloadForProducts()}
+                variant="outline"
+                size="icon" >
+                <RefreshCcw />
+              </Button>
+            
+            {/* pagination widget */}
            {pagesCount > 1 && <div>
               <PaginationWidget
                 pagesCount={pagesCount}
                 searchQuery={searchQuery}
                 activePageIndex={activePageIndex}
-                handlePageChange={handleDisplayItemsChange} />
+                handlePageChange={
+                  (newPageIndex: number, searchQuery: string) =>
+                    productsServices.handleDisplayItemsChange({ newPage: newPageIndex, searchQuery: searchQuery, setIsLoading, setProducts, setFilteredProducts, setActivePageIndex, setPagesCount })} />
             </div>}
+          </div>
           </div>
                   
                   
@@ -286,7 +381,11 @@ const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
                   <TableHead className="w-[400px]">
                     <div className="flex items-center gap-2">
                       Product
-                      <ArrowUpDown className="h-4 w-4" />
+                      <Button size={"sm"} variant={"ghost"} onClick={() => switchOrderState()}>
+                      <ArrowUpDown
+                          className="h-4 w-4 cursor-pointer" />
+                        <h1>{ productsAreInDescOrder? "Desc" : "Asc" }</h1>
+                      </Button>
                     </div>
                   </TableHead>
                   <TableHead>Price</TableHead>
@@ -303,8 +402,8 @@ const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
                 ) : filteredProducts.length === 0 ? (
                   <EmptyState />
                 ) : (
-                  filteredProducts.map((product) => (
-                    <TableRow key={product.id} className="hover:bg-muted/50">
+                  filteredProducts.map((product,index) => (
+                    <TableRow key={product.id+index} className="hover:bg-muted/50">
                       <TableCell>
                         <div className="flex items-center gap-4">
                           <ProductImage url={product.bigImageUrl} alt={product.name} />
@@ -319,7 +418,7 @@ const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
                           price={product.price}
                           discountPrice={product.discountPrice}
                           isInDiscount={product.isInDiscount}
-                          formatCurrency={formatCurrency}
+                          formatCurrency={productsServices.formatCurrency}
                         />
                       </TableCell>
                       <TableCell>
@@ -337,7 +436,7 @@ const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
                           )}
                           <Switch
                             checked={product.isVisible}
-                            onCheckedChange={() => handleVisibilityToggle(product.id, product.isVisible)}
+                            onCheckedChange={() => handleVisibilityToggle(product)}
                           />
                         </div>
                       </TableCell>
@@ -352,22 +451,14 @@ const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
                                   </Button>
                                   
                           {/* Dropdown Menu */}
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem>Edit Product</DropdownMenuItem>
-                              <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-red-600">
-                                Delete Product
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <DropDownMenu
+                            productId={product.id}
+                            setFilteredProduct={setFilteredProducts}
+                            setTotalProductsCount={setTotalProductsCount}
+                            fastRefetch={quickLoadAndReloadForProducts}
+                            toast={toast}
+                            productServices={productsServices} />
+                          
                         </div>
                       </TableCell>
                     </TableRow>
@@ -384,7 +475,7 @@ const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
         isDetailsOpen={isDetailsOpen}
         setIsDetailsOpen={setIsDetailsOpen}
         selectedProduct={selectedProduct!}
-        formatCurrency={formatCurrency}
+        formatCurrency={productsServices.formatCurrency}
       />
     </div>
   );

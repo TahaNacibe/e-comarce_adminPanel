@@ -3,6 +3,7 @@ import SessionProvider from "./components/SessionProvider"
 import { getServerSession } from "next-auth";
 import "./globals.css";
 import SideBarWarper from "./components/sideBar-warper";
+import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +28,8 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <SessionProvider>
           <SideBarWarper>
-          {children}
+            {children}
+            <Toaster />
           </ SideBarWarper>
         </SessionProvider>
       </body>

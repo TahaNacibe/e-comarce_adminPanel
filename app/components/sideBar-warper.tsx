@@ -52,27 +52,27 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
         {
             icon: ChartColumn,
             title: "Admin Panel",
-            link: "/admin_panel"
+            link: "/admin"
         },
         {
             icon: NotebookText,
             title: "Orders Record",
-            link: "/order_record"
+            link: "/order"
         },
         {
             icon: Package,
             title: "Products Section",
-            link: "/products_section"
+            link: "/products"
         },
         {
             icon: Tags,
             title: "Products Categories",
-            link: "/products_categories"
+            link: "/categories"
         },
         {
             icon: Wrench,
             title: "Preferences",
-            link: "/panel_preferences"
+            link: "/preferences"
         },
     ]
 

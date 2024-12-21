@@ -34,7 +34,7 @@ export default function ProductsDetailsSheet({
     <Sheet open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
       <SheetContent className="sm:max-w-[600px] overflow-y-scroll">
         <SheetHeader>
-          <SheetTitle className="text-xl font-bold">Product Details</SheetTitle>
+          <SheetTitle className="text-xl font-medium">Product Details</SheetTitle>
           <SheetDescription className="text-sm text-muted-foreground">
             View complete information about the product
           </SheetDescription>
