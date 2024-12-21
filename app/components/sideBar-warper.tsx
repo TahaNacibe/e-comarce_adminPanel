@@ -143,7 +143,7 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
 
                 {/* side bar */}
                 <motion.div 
-                    className={`fixed lg:relative h-screen overflow-x-hidden z-40 bg-white shadow-lg
+                    className={`fixed lg:relative h-screen overflow-x-hidden z-40 bg-white 
                         ${isMobileMenuOpen ? 'block' : 'hidden'} lg:block`}
                     initial={{ width: "56px", x: -200 }}
                     animate={{ 
@@ -208,7 +208,7 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
                 {/* Mobile menu toggle button */}
                 <button 
                     onClick={() => setMobileMenuOpen(!isMobileMenuOpen)}
-                    className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white shadow-md"
+                    className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white shadow-sm"
                 >
                     {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>

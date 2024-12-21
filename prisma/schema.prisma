@@ -9,8 +9,7 @@ datasource db {
 
 type ProductsProperties {
   label          String
-  options        String[]
-  selectedOption Json?
+  values         String
 }
 
 type OrderProductMetadata {
@@ -66,7 +65,7 @@ model Products {
   // Basic Product Info
   name        String
   description String
-  properties  ProductsProperties
+  properties  ProductsProperties[]
 
   // Pricing
   price         Float
