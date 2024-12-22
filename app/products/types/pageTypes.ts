@@ -28,4 +28,32 @@ export interface Tag {
     description: string;
     parentId?: string;
 }
+
+
+export interface Category {
+    id: number;
+    name: string;
+  }
+  
+  export interface FormErrors {
+    title?: string;
+    description?: string;
+    bigImage?: string;
+    smallImages?: string;
+    price?: string;
+  }
+  
+  export interface ProductFormData {
+    bigImage: string | null;
+    smallImages: string[];
+    productTitle: string;
+    productDescription: string;
+    productPrice: string;
+    isProductInDiscount: boolean;
+    discountPrice: string;
+    productCount: string;
+    selectedCategories: Category[];
+    productTags: string[];
+    isProductUnlimited: boolean;
+  }
   
