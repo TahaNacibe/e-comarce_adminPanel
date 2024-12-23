@@ -57,3 +57,22 @@ export interface Category {
     isProductUnlimited: boolean;
   }
   
+
+  export interface FormDataInterface {
+    bigImage: string | null;
+    smallImages: string[];
+    productTitle: string;
+    productDescription: string;
+    productPrice: string;
+    isProductInDiscount: boolean;
+    discountPrice: string;
+    productCount: string;
+    selectedCategories: Category[];
+    productTags: string[];
+    isProductUnlimited: boolean;
+}
+  
+export interface PropertiesInterface{
+    label: string;
+    values: string;
+}
