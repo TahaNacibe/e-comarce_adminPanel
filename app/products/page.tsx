@@ -28,11 +28,10 @@ import PaginationWidget from '../components/pagination_widget';
 import { ConfirmActionDialog } from '../components/confirmActionDialog';
 import ProductsServices from '../services/products/productsServices';
 import { useToast } from '@/hooks/use-toast';
-import ToastItem from '../components/taostItem';
 
 // consts for easy access
-const IMAGE_WIDTH = 48;
-const IMAGE_HEIGHT = 48;
+const IMAGE_WIDTH = 300;
+const IMAGE_HEIGHT = 300;
 const COLUMNS_SPAN = 5;
 const LOW_STOCK_THRESHOLD = 10;
 
@@ -178,10 +177,12 @@ const DropDownMenu = ({ productId, productServices, setFilteredProduct ,setTotal
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Fast Action</DropdownMenuLabel>
         <DropdownMenuItem asChild>
-          <Button variant={"ghost"} className='w-full text-left flex justify-start '>
+          <Link href={`/products/edit/${productId}`} className='w-full text-left flex justify-start p-0 m-0'>
+          <Button variant={"ghost"} className='p-0'>
              <Edit2 />
           Edit Product
           </Button>
+          </Link>
          </DropdownMenuItem>
         <DropdownMenuItem asChild>
         <ConfirmActionDialog
@@ -238,6 +239,7 @@ const ProductsPage = () => {
   const [activePageIndex, setActivePageIndex] = useState(1)
   const [totalProductsCount, setTotalProductsCount] = useState(0)
   const [productsAreInDescOrder, setProductsAreInDescOrder] = useState(true)
+  const [isToasted, setIsToasted] = useState(false)
 
   // instances
   const productsServices = new ProductsServices();
@@ -254,7 +256,12 @@ const ProductsPage = () => {
       productsAreInDescOrder,
       setPagesCount,
       setIsLoading
-    }).then((response) => handleResponseFromBackEnd(toast,response));
+    }).then((response) => {
+      if (!isToasted) {
+        handleResponseFromBackEnd(toast, response)
+        setIsToasted(true)
+      }
+    });
   }
 
   useEffect(() => {
@@ -293,7 +300,7 @@ const ProductsPage = () => {
       // handle item visibility state change
   const handleVisibilityToggle = async (product: Product) => {
     product.isVisible = !product.isVisible;
-    const response = await productsServices.editProductInDb({ product })
+    const response = await productsServices.editProductStateInDb({ product })
     handleResponseFromBackEnd(toast,response)
     if (!response || !response.success) return;
     const updatedProduct = response.data

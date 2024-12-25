@@ -32,7 +32,9 @@ export interface Tag {
 
 export interface Category {
     id: number;
-    name: string;
+  name: string;
+  description: string;
+  parentTag: Category
   }
   
   export interface FormErrors {
@@ -44,8 +46,8 @@ export interface Category {
   }
   
   export interface ProductFormData {
-    bigImage: string | null;
-    smallImages: string[];
+    bigImage: File | null;
+    smallImages: File[];
     productTitle: string;
     productDescription: string;
     productPrice: string;
@@ -53,14 +55,14 @@ export interface Category {
     discountPrice: string;
     productCount: string;
     selectedCategories: Category[];
-    productTags: string[];
+    properties: PropertiesInterface[];
     isProductUnlimited: boolean;
   }
   
 
   export interface FormDataInterface {
-    bigImage: string | null;
-    smallImages: string[];
+    bigImage: File | null;
+    smallImages: File[];
     productTitle: string;
     productDescription: string;
     productPrice: string;
@@ -68,7 +70,7 @@ export interface Category {
     discountPrice: string;
     productCount: string;
     selectedCategories: Category[];
-    productTags: string[];
+    properties: PropertiesInterface[];
     isProductUnlimited: boolean;
 }
   

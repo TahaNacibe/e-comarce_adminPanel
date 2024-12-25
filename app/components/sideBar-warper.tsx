@@ -57,7 +57,7 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
         {
             icon: NotebookText,
             title: "Orders Record",
-            link: "/order"
+            link: "/orders"
         },
         {
             icon: Package,

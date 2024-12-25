@@ -1,5 +1,5 @@
 "use client"
-import { ChangeEvent, FormEvent, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 // components/CategorySelector.tsx
 import { Button } from "@/components/ui/button";
 import { Category, FormDataInterface, PropertiesInterface } from "../types/pageTypes";
@@ -9,35 +9,61 @@ import { ImageUploadSection } from "../components/image-upload-section";
 import { CategorySelector } from "../components/category-selector";
 import { ProductDetails } from "../components/product-details-column";
 import PropertiesWidget from "../components/properties-widget";
+import CategoriesServices from "@/app/services/categories/categories_services";
+import ToastItem from "@/app/components/taostItem";
+import ProductsServices from "@/app/services/products/productsServices";
+import { useToast } from "@/hooks/use-toast";
+import { redirect, useRouter } from "next/navigation";
   
 
   // Create New Product Page
   export default function CreateNewProductPage(){
-    // State variables
-  const [bigImage, setBigImage] = useState<string | null>(null);
-  const [smallImages, setSmallImages] = useState<string[]>([]);
+  // State variables
+  // image state
+  const [bigImage, setBigImage] = useState<File | null>(null);
+  const [smallImages, setSmallImages] = useState<File[]>([]);
+  // details state
   const [productTitle, setProductTitle] = useState<string>("");
   const [productDescription, setProductDescription] = useState<string>("");
   const [productPrice, setProductPrice] = useState<string>("");
   const [isProductInDiscount, setIsProductInDiscount] = useState<boolean>(false);
   const [discountPrice, setDiscountPrice] = useState<string>("");
   const [productCount, setProductCount] = useState<string>("");
+  // categories
+  const [categories,setCategories] = useState<Category[]>([])
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
-  const [productTags, setProductTags] = useState<string[]>([]);
+  const [isCategoriesLoading, setIsCategoriesLoading] = useState(true)
+  // properties
   const [properties, setProperties] = useState<PropertiesInterface[]>([]);
   const [isProductUnlimited, setIsProductUnlimited] = useState<boolean>(false);
-  const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
+  // error
   const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [actionCode, setActionCode] = useState(0)
+    
+    
+    
+    // get instances
+    const categoriesServices = new CategoriesServices()
+    const productsServices = new ProductsServices()
+
+
+    const { toast } = useToast()
+    const router = useRouter()
       
-       //todo: Mock categories - replace with actual API call
-  const categories: Category[] = [
-    { id: 1, name: "Electronics" },
-    { id: 2, name: "Clothing" },
-    { id: 3, name: "Books" },
-    { id: 4, name: "Home & Garden" },
-    { id: 5, name: "Sports" },
-    { id: 6, name: "Toys" }
-  ];
+    useEffect(() => {
+      // load the list of categories
+      categoriesServices.getCategoriesListFromDb({ setCategoriesList: setCategories }).then((response) => {
+        setIsCategoriesLoading(false)
+        if (response?.success!) {
+          ToastItem({
+            title: response?.message!,
+            desc:response?.data
+        })
+        }
+      })
+    }, [])
+    
+
 
   // Validation
   const validateForm = (): FormErrors => {
@@ -56,29 +82,32 @@ import PropertiesWidget from "../components/properties-widget";
   const handleBigImageChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0];
     if (file) {
-      setBigImage(URL.createObjectURL(file));
+      setBigImage(file);
       setFormErrors(prev => ({ ...prev, bigImage: undefined }));
     }
   };
 
+    
       
   // Small image handlers with proper types
   const handleSmallImageAdd = (e: ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0];
     if (file) {
-      const newImage = URL.createObjectURL(file);
+      const newImage = file;
       setSmallImages(prev => [...prev, newImage]);
       setFormErrors(prev => ({ ...prev, smallImages: undefined }));
     }
       };
       
 
+    
   // Remove small image 
   const removeSmallImage = (index: number): void => {
     setSmallImages(prev => prev.filter((_, i) => i !== index));
   };
 
       
+    
       
   // Category handlers with proper types
   const handleCategorySelect = (categoryId: number): void => {
@@ -86,15 +115,16 @@ import PropertiesWidget from "../components/properties-widget";
     if (category && !selectedCategories.find(c => c.id === categoryId)) {
       setSelectedCategories(prev => [...prev, category]);
     }
-    setIsSearchOpen(false);
   };
 
+    
       
     // Remove category
   const removeCategory = (categoryId: number): void => {
     setSelectedCategories(prev => prev.filter(c => c.id !== categoryId));
   };
 
+    
       
     // Add new property
     const addProperty = ({property}:{property:PropertiesInterface}) => {
@@ -105,17 +135,23 @@ import PropertiesWidget from "../components/properties-widget";
                 values: property.values,
             },
         ]);
-      };
+    };
+    
+
       
       // Remove property
         const removeProperty = (index: number) => {
             setProperties((prev) => prev.filter((_, i) => i !== index));
-      };
+    };
+    
+
       
       // edit property
       const editProperty = (editedProperty: PropertiesInterface, itemIndex: number) => {
           setProperties(prev => prev.map((item,index) => itemIndex === index? editedProperty : item ))
-      }
+    }
+    
+
       
   // Form submission with proper types
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
@@ -137,15 +173,40 @@ import PropertiesWidget from "../components/properties-widget";
       discountPrice,
       productCount,
       selectedCategories,
-      productTags,
+      properties,
       isProductUnlimited
     };
 
     try {
-      //todo: Add API call
-      console.log(formData);
-    } catch (error) {
-      console.error('Error submitting form:', error);
+
+      // inform user
+      setActionCode(1)
+      toast({
+        title: actionCode === 1? "Uploading Images" : "Adding Product",
+        description: actionCode === 1? "Uploading the product images to the server..." : "Creating a new product...",
+        duration: 9999999,
+        open:actionCode !== 0
+      })
+
+      // create product
+      const productCreatingResponse = await productsServices.createNewProductInDb({ formData, setActionState: setActionCode })
+      
+      // in success redirect back
+      if (productCreatingResponse.success) {
+        router.push("/products")
+      } else {
+        // in error show the error
+        toast({
+          title: productCreatingResponse.message,
+          description: productCreatingResponse.data
+        })
+      }
+      
+    } catch (error:any) {
+      toast({
+        title: "Error submitting form",
+        description: error.message
+     })
     }
   };
   
@@ -200,28 +261,34 @@ import PropertiesWidget from "../components/properties-widget";
                   onCountChange={(e) => setProductCount(e.target.value)}
                   errors={formErrors}
                 />
-  
+
+
+                {/* category selector components */}
                 <CategorySelector
                   categories={categories}
                   selectedCategories={selectedCategories}
                   onSelect={handleCategorySelect}
                   onRemove={removeCategory}
+                  isLoading={isCategoriesLoading}
                             />
 
-
-                            <PropertiesWidget
-                                properties={properties}
-                                onPropertyAdd={(property: PropertiesInterface) => { 
-                                    addProperty({ property });
-                                }}
-                                onPropertyRemoved={(propertyIndex: number) => { 
-                                   removeProperty(propertyIndex);
-                                }}
-                                onPropertyEdited={(editedProperty: PropertiesInterface, itemIndex: number) => {
-                                    editProperty(editedProperty, itemIndex);
-                                }}
-                            />
+                
+                {/* properties components */}
+                <PropertiesWidget
+                    properties={properties}
+                    onPropertyAdd={(property: PropertiesInterface) => { 
+                        addProperty({ property });
+                    }}
+                    onPropertyRemoved={(propertyIndex: number) => { 
+                        removeProperty(propertyIndex);
+                    }}
+                    onPropertyEdited={(editedProperty: PropertiesInterface, itemIndex: number) => {
+                        editProperty(editedProperty, itemIndex);
+                    }}
+                />
   
+                
+                {/* create product components */}
                 <Button type="submit" className="w-full">
                   Create Product
                 </Button>

@@ -1,4 +1,6 @@
-import { Product } from "@/app/products/types/pageTypes";
+import { FormDataInterface, Product } from "@/app/products/types/pageTypes";
+import ImageServices from "../images-services/image-services";
+import transformData from "@/lib/transform_data";
 
 class ProductsServices{
     //* formate the display price currency
@@ -105,7 +107,7 @@ class ProductsServices{
 
 
     // update existing products
-    editProductInDb = async ({product}:{product:Product}) => {
+    editProductStateInDb = async ({product}:{product:Product}) => {
         try {
             // if any of the required data is missing then cancel
             if (!product) return;
@@ -132,6 +134,127 @@ class ProductsServices{
         } catch (error:any) {
             return {success:false,message:`Error updating product`,data:error.toString()}
           
+        }
+    }
+
+
+    //* create a product in Db
+    createNewProductInDb = async ({ formData,setActionState }: { formData: FormDataInterface,setActionState:(actionCode:number) => void }) => {
+        // instances
+        const imagesServices = new ImageServices()
+
+        let bigImageUrl: string;
+        let smallImageUrls: string[];
+
+        // handle request
+        try {
+            
+            // upload the images
+            const bigImageFile = formData.bigImage
+            const otherImagesFile = formData.smallImages
+
+            // handle the request for images
+            const imagesResponse = await imagesServices.handleImagesUpload(bigImageFile!, otherImagesFile)
+
+            
+            // check images upload response
+            if (!imagesResponse || !imagesResponse.success) {
+                return imagesResponse
+            } 
+            
+            bigImageUrl = imagesResponse.data?.bigImage!
+            smallImageUrls = imagesResponse.data?.smallImages!
+            
+            setActionState(1)
+            // replace files with urls 
+            const {bigImage, smallImages, ...rest} = formData
+            const response = await fetch("/api/products", {
+                method: "POST",
+                body:JSON.stringify({rest,bigImageUrl,smallImageUrls})
+            })
+
+            setActionState(0)
+            // check response state
+            if (response.ok) {
+                const data = await response.json()
+                console.log("data ---> ",data)
+                return { success: true, message: "Product created!", data:data.product}
+            }
+
+            return { success: false, message: "Product Creating process failed!", data:response.status}
+
+        } catch (error:any) {
+            setActionState(0)
+            return { success: false, message: "Failed to create a product", data: error.message }
+        }
+    }
+
+
+
+    //* get a single product details
+    getProductDetailsById = async (productId: string) => {
+        try {
+            // get the product
+            const response = await fetch(`/api/products?productId=${productId}`)
+
+            // if received
+            if (response.ok) {
+                const data = await response.json()
+                return {success:true, message:"Product Loaded",data:data.message}
+            }
+
+            return {success:false, message:"Product Loading failed!",data:"Error 500 bad request"}
+        } catch (error:any) {
+            return {success:false, message:"Product Loading failed",data:error.message}
+        }
+    }
+
+
+
+    //* update existing product in db
+    updateExistingProductInDb = async (productId: string,formData:any) => {
+        try {
+        // instances
+        const imagesServices = new ImageServices()
+
+        let bigImageUrl: string = formData.existingBigImage;
+        let smallImageUrls: string[] = formData.existingSmallImages;
+            
+        // if that image is replaced it will be file
+        if (formData.bigImage instanceof File) {
+            const response = await imagesServices.uploadToCloudinary(formData.bigImage)
+            if (response.success) {
+                bigImageUrl = response.data!
+            }
+            }
+
+            // update small images on change
+          for (let index = 0; index < formData.smallImages.length; index++) {
+            const response = await imagesServices.uploadToCloudinary(formData.smallImages[index])
+            if (response.success) {
+                smallImageUrls.push(response.data!)
+            }
+            
+            }
+            
+ 
+            const { existingSmallImages, existingBigImage, bigImage,smallImages,...rest } = formData
+            
+            const formattedData = transformData(rest,bigImageUrl,smallImageUrls)
+            //* update item
+            const updateResponse = await fetch(`/api/products?productId=${productId}`, {
+                method: "PUT",
+                body:JSON.stringify(formattedData)
+            })
+
+            if (updateResponse.ok) {
+                const data = await updateResponse.json()
+                return {success:true, message:"Product was Updated",data:data.message}
+            }
+            
+            return {success:false, message:"Failed to update product",data:updateResponse.status}
+        } catch (error:any) {
+            return {success:false, message:"Failed to update product",data:error.message}
         }
     }
     

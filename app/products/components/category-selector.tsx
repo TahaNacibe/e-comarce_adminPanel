@@ -6,12 +6,25 @@ import { Command,CommandInput, CommandEmpty, CommandGroup, CommandItem } from "@
 import { Search, X } from "lucide-react";
 import { useState } from "react";
 import { Category } from "../types/pageTypes";
+import { Skeleton } from "@/components/ui/skeleton";
 
+
+//* loading widget
+const LoadingWidget = () => {
+  return (
+    <div className="gap-2 flex flex-col px-2">
+      <Skeleton className="h-4 " />
+      <Skeleton className="h-4" />
+      <Skeleton className="h-4 " />
+      </div>
+    )
+  }
 
  //* categories selector interface
  interface CategorySelectorProps {
     categories: Category[];
-    selectedCategories: Category[];
+   selectedCategories: Category[] ;
+   isLoading: boolean,
     onSelect: (categoryId: number) => void;
     onRemove: (categoryId: number) => void;
   }
@@ -21,6 +34,7 @@ import { Category } from "../types/pageTypes";
   export function CategorySelector({
     categories,
     selectedCategories,
+    isLoading,
     onSelect,
     onRemove,
   }: CategorySelectorProps) {
@@ -47,7 +61,7 @@ import { Category } from "../types/pageTypes";
             <Command>
             <CommandInput placeholder="Search categories..." />
         {/* empty search result state */}
-            <CommandEmpty>No categories found.</CommandEmpty>
+            <CommandEmpty>{isLoading? <LoadingWidget /> : 'No categories found.'}</CommandEmpty>
         {/* categories list */}
               <CommandGroup>
                 {categories.map((category) => (

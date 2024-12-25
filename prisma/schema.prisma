@@ -93,7 +93,7 @@ model Products {
 
 model Tags {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
+  name        String @unique
   description String
   parentTag   Tags? @relation("ParentTagKey",fields: [parentId],references: [id], onDelete: NoAction, onUpdate: NoAction)
   parent  Tags? @relation("ParentTagKey")
@@ -102,7 +102,6 @@ model Tags {
   product Products[] @relation(fields: [productsIds],references: [id])
 
 
-  @@index([name])
 }
 
 
