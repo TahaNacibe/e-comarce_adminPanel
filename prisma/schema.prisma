@@ -14,6 +14,7 @@ type ProductsProperties {
 
 type OrderProductMetadata {
   productId   String @db.ObjectId
+  productImage String?
   productName String
   quantity    Int
   unitePrice  Float

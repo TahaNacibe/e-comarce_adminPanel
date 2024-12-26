@@ -7,7 +7,6 @@ const GET = async (req: NextRequest) => {
     const pageIndex = parseInt(searchParams.get("pageIndex") || "1");
     const searchQuery = searchParams.get("searchQuery") || "";
     const filterKey = searchParams.get("filterKey");
-    const verifyState = searchParams.get("verifyState")
     
     const pageSize = 20; 
     //* Calculate pagination offset
@@ -89,8 +88,41 @@ const GET = async (req: NextRequest) => {
             take: pageSize,
         });
 
+        const productIds = orders.flatMap(order => order.orderMetaData.productsMetaDataList.map(product => product.productId));
+        // Fetch products in bulk to get images
+        const products = await prisma.products.findMany({
+            where: {
+            id: {
+                in: productIds,
+            }
+            },
+            select: {
+            id: true,
+            bigImageUrl: true, // Select only the image field
+            }
+        });
+        // Map the images to their respective orders
+        const ordersWithImages = orders.map(order => {
+            // Map product image to each order based on productId
+            const productsWithImage = order.orderMetaData.productsMetaDataList.map(productMetadata => {
+            const product = products.find(p => p.id === productMetadata.productId);
+            return {
+                ...productMetadata,
+                productImage: product ? product.bigImageUrl : "image_placeholder.jpg", // Attach the image
+            };
+            });
+        
+            return {
+            ...order,
+            orderMetaData: {
+                ...order.orderMetaData,
+                productsMetaDataList: productsWithImage,
+            },
+            };
+        });
+
         // Transform dates to ISO string for JSON serialization
-        const serializedOrders = orders.map(order => ({
+        const serializedOrders = ordersWithImages.map(order => ({
             ...order,
             createdAt: order.createdAt.toISOString(),
             updatedAt: order.updatedAt.toISOString(),
@@ -126,4 +158,136 @@ const GET = async (req: NextRequest) => {
     }
 };
 
-export { GET };
+
+
+const DELETE = async (req: NextRequest) => {
+    try {
+      //* Get search params and order id
+      const { searchParams } = new URL(req.url);
+      const orderId = searchParams.get("orderId");
+      const ordersListIds = searchParams.get("ordersListIds");
+  
+      // Check if order id or ordersListIds exists
+      if (!orderId && !ordersListIds) {
+        return NextResponse.json({ message: "Require Order Id for delete" }, { status: 400 });
+      }
+  
+      // Single order deletion
+        if (orderId) {
+          console.log("--------------------> ")
+        // Check if the target order exists
+        const targetForDelete = await prisma.orders.count({
+          where: { id: orderId },
+        });
+  
+        // Handle case where the order does not exist
+        if (targetForDelete === 0) {
+          return NextResponse.json({ message: "Can't Find The Order Item" }, { status: 404 });
+        }
+  
+        // Delete the target order
+        const deletedItem = await prisma.orders.delete({
+          where: { id: orderId },
+        });
+  
+            // Return success message
+            console.log("-----------------> 1")
+        return NextResponse.json({ message: "Order Deleted!" }, { status: 200 });
+      }
+  
+      // Bulk delete
+      const ordersIds = ordersListIds?.split("_") || [];
+      if (ordersIds.length === 0) {
+        return NextResponse.json({ message: "Require valid order ids" }, { status: 400 });
+      }
+  
+      // Check if all provided order ids exist
+      const targetForDelete = await prisma.orders.count({
+        where: { id: { in: ordersIds } },
+      });
+  
+      // In case of mismatch (some ids not found)
+      if (targetForDelete !== ordersIds.length) {
+        return NextResponse.json({ message: "Couldn't find some of the orders selected" }, { status: 400 });
+      }
+  
+      // Proceed with deleting the orders
+      const deletedItems = await prisma.orders.deleteMany({
+        where: { id: { in: ordersIds } },
+      });
+  
+      return NextResponse.json({ message: `${deletedItems.count} Orders Deleted!` }, { status: 200 });
+    } catch (error:any) {
+      // Log the error for debugging (if in production, use proper logging)
+      console.error("Error during deletion:", error);
+      return NextResponse.json({ message: "Error occurred while deleting", error: error.message }, { status: 500 });
+    }
+};
+  
+
+
+const PUT = async (req: NextRequest) => {
+    try {
+        console.log("stop 0")
+        //* get params
+        const { searchParams } = new URL(req.url)
+        const orderId = searchParams.get("orderId")
+        const isUpdateVerification = searchParams.get("updateVerification")
+
+        // get the updated order
+        console.log("stop 1")
+        
+        //* toggle state action
+        if (isUpdateVerification) {
+            if (!orderId) return NextResponse.json({message:"Require Order iD"},{status:400})
+            //* get the element
+            const item = await prisma.orders.findUnique({
+                where: { id: orderId },
+                select: { verified: true }, // Fetch only the boolean field
+            });
+            
+            if(!item) return NextResponse.json({message:"No Order with that id"},{status:404})
+
+            const updatedOrder = await prisma.orders.update({
+                where: {
+                    id:orderId
+                },
+                data: {
+                    verified:!item?.verified
+                }
+            })
+
+            return NextResponse.json({message:"Verification state updated!"},{status:200})
+        }
+
+
+        console.log("stop 2")
+        //* update a whole order
+        const { newOrder } = await req.json()
+        console.log("stop 3 ",newOrder)
+        const updateOrderId = newOrder.id;
+        if(!updateOrderId) return NextResponse.json({message:"No Order Id received"},{status:400})
+        const updateTargetOrder = await prisma.orders.findUnique({
+            where: {
+                id:updateOrderId
+            }
+        })
+
+        if(!updateTargetOrder) return NextResponse.json({message:"No Order with that Id found"},{status:404})
+
+        console.log("reached deep enough")
+        const { id, ...rest } = newOrder
+        console.log("---------------> ",id,rest)
+        const updatedOrder = await prisma.orders.update({
+            where: { id: updateOrderId },
+            data:rest
+        })
+
+        return NextResponse.json({message:"Order updated!",updatedOrder},{status:200})
+    } catch (error:any) {
+        console.log(error.toString())
+        return NextResponse.json({message:"Something went wrong updating the order info"},{status:500})
+    }
+}
+  
+export { GET,DELETE,PUT };

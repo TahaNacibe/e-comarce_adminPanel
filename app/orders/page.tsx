@@ -30,6 +30,7 @@ import { Input } from "@/components/ui/input";
 import OrdersTable from "./components/table";
 import PaginationWidget from "../components/pagination_widget";
 import { useDebounce } from "use-debounce"; // Import use-debounce
+import { error } from "console";
 
 export default function OrdersPage() {
   //* Data state variables
@@ -111,7 +112,7 @@ export default function OrdersPage() {
       if (!isToasted) {
         toast({
           title: response.message,
-          description: `Total of ${response.data.data.length}`,
+          description: `Total of ${response.data.totalItems}`,
         });
         setIsToasted(true);
       }
@@ -130,40 +131,62 @@ export default function OrdersPage() {
   //* Initial data load on page load
   useEffect(() => {
       loadOrdersList({ pageIndex: 1 });
-      
-      const intervalId = setInterval(() => {
-          loadOrdersList({ pageIndex: activePageIndex,isAutoReload:true })
-          console.log("refetch...")
-      }, 60000) // Poll every 1 minute (60000ms)
-        // Clear interval on component unmount
-        return () => clearInterval(intervalId) 
-      
-      
-      
-      
-    //    // Listen to new orders via SSE
-    // const eventSource = new EventSource("/api/sse")
+    }, [session, filterKey]);
+    
+    useEffect(() => {
+      // Listen to new orders via SSE
+       ordersServices.getOrdersListStream(setOrdersList)
+  },[])
 
-    // eventSource.onmessage = (event) => {
-    //   const newOrder = JSON.parse(event.data) as Orders
-    //   setOrdersList((prevOrders) => [newOrder, ...prevOrders]) // Add new order to the top
-    // }
-
-    // eventSource.onerror = (error) => {
-    //   console.error("SSE error:", error)
-    //   eventSource.close()
-    // }
-
-    // // Cleanup when component unmounts
-    // return () => {
-    //   eventSource.close()
-    // }
-  }, [session, filterKey]); // Re-run when session or filterKey changes
 
   //* Handle search input change and update data accordingly
   useEffect(() => {
       loadOrdersList({ pageIndex: 1, searchQuery: debouncedSearchQuery});
   }, [debouncedSearchQuery]); // This effect runs when the debounced search query changes
+
+  //* handle delete operations
+  const handleDeleteOperations = async ({ orderId, ordersList }: { orderId?: string | null, ordersList?: string[] | null }) => {
+    // inform user
+    toast({
+      title: "Deleting...",
+      description:`deleting ${orderId? "1 order" : ordersList?.length+" orders"}`
+    })
+    // delete
+    const response = await ordersServices.handleDeletingOrderOrManyOrdersFromDb({ orderId, ordersList })
+    if (orderId) setOrdersList(prev => prev.filter((order) => order.id !== orderId))
+    if (ordersList) setOrdersList((prev) => prev.filter((order) => !Array.from(ordersList).includes(order.id)))
+    // inform user
+    toast({
+      title: response.success ? "Deleted!" : "Failed To Delete Orders",
+      description: response.message
+    })
+  }
+
+
+  const handleVerificationStateChange = async (orderId: string) => {
+    // inform user
+    toast({
+      title: "change Verification state",
+      description:"updating order data..."
+    })
+    // request change
+    const response = await ordersServices.updateVerificationStateForOrder({ orderId })
+    if (response.success) {
+      setOrdersList((prev) =>
+        prev.map((order) =>
+          order.id === orderId
+            ? { ...order, verified: !order.verified } // Create a new object with the updated `verified` field
+            : order // Return the unchanged order
+        )
+      );
+      
+    }
+    toast({
+      title: response.success ? "Updated!" : "Failed To Update",
+      description: response.message
+    })
+  }
+
 
   //* Loading state widget
   if (isLoading) {
@@ -187,6 +210,34 @@ export default function OrdersPage() {
     setActivePageIndex(pageIndex);
   };
 
+  async function handleUpdateOrder(newOrder: Orders) {
+    toast({
+      title: "Updating...",
+      description: "Applying update to order"
+    })
+    const updatedResponse = await ordersServices.updateOrderDetailsInDb(newOrder)
+    if (updatedResponse.success) {
+      setOrdersList(prev => prev.map((order) => order.id === updatedResponse.data.id? updatedResponse.data : order))
+    }
+
+    toast({
+      title: updatedResponse.message,
+      description:updatedResponse.success? "Order was updated!" : updatedResponse.message
+    })
+  }
+
+
+  const handleExportActionRequest = async (fileExtension: string) => {
+    toast({
+      title:"getting file ready to download..."
+    })
+    const response = await ordersServices.exportOrdersAsFile(fileExtension)
+    toast({
+      title: response?.message,
+      description: response?.data
+    })
+  }
+
   return (
     <Card className="min-h-screen rounded-none border-0">
       <CardHeader className="space-y-6">
@@ -195,7 +246,9 @@ export default function OrdersPage() {
             <h1 className="text-2xl font-medium">Orders Dashboard</h1>
           </div>
           <div className="flex gap-3">
-            <Button className="gap-2">
+            <Button
+              onClick={() => handleExportActionRequest("excel")}
+              className="gap-2">
               <Download className="w-4 h-4" />
               Export All
             </Button>
@@ -208,9 +261,9 @@ export default function OrdersPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem>Save as PDF</DropdownMenuItem>
-                <DropdownMenuItem>Save as JSON</DropdownMenuItem>
-                <DropdownMenuItem>Save as Text</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => handleExportActionRequest("excel")}>Save as Excel</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => handleExportActionRequest("json")}>Save as JSON</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => handleExportActionRequest("text")}>Save as Text</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -292,6 +345,10 @@ export default function OrdersPage() {
         <OrdersTable
           ordersList={ordersList}
           isDataLoading={isDataLoading}
+          orderServices={ordersServices}
+          deleteAction={({orderId,orders}:{orderId: string,orders:string[]}) => handleDeleteOperations({orderId,ordersList:orders})}
+          updateVerification={(orderId: string) => handleVerificationStateChange(orderId)}
+          updateOrderDetails ={(newOrder: Orders) => handleUpdateOrder(newOrder)}
         />
       </CardContent>
     </Card>

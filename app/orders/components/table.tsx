@@ -8,9 +8,14 @@ import {
   MoreHorizontal, Edit, Trash2, Eye, Download, ArrowUpDown, 
    PackageCheck, PackageSearch, PackageX, User2, 
   Calendar, Smartphone, CircleCheck, Package, ReceiptEuro, 
-  Loader2
+  Loader2,
+  ReceiptText
 } from "lucide-react";
 import { Orders } from '@prisma/client';
+import { ConfirmActionDialog } from '@/app/components/confirmActionDialog';
+import OrderDetailsAndEditSheet from './details_sheet';
+import OrderServices from '@/app/services/orders-services/orders-services';
+
 
 // Define the possible order status types
 type OrderStatus = "PENDING" | "COMPLETED" | "CANCELED";
@@ -18,7 +23,11 @@ type OrderStatus = "PENDING" | "COMPLETED" | "CANCELED";
 // Props interface for the OrdersTable component
 interface OrdersTableProps {
   ordersList: Orders[];
-  isDataLoading:boolean
+  isDataLoading: boolean; 
+  deleteAction: any;
+  updateVerification: any;
+  updateOrderDetails: any;
+  orderServices:OrderServices;
 }
 
 // Type definition for sorting configuration
@@ -71,7 +80,7 @@ const formatDate = (date: Date | string): string => {
  * OrdersTable Component
  * Displays a table of orders with sorting, selection, and action capabilities
  */
-export default function OrdersTable({ ordersList,isDataLoading }: OrdersTableProps) {
+export default function OrdersTable({ ordersList,isDataLoading,deleteAction,updateVerification,updateOrderDetails,orderServices }: OrdersTableProps) {
   // State for tracking selected orders
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   // State for tracking current sort configuration
@@ -160,12 +169,17 @@ export default function OrdersTable({ ordersList,isDataLoading }: OrdersTablePro
     }).format(amount);
   };
   
+
+  //* loading 
   if (isDataLoading) {
     return <div className='flex items-center justify-center h-screen'>
       <Loader2 className="w-8 h-8 animate-spin" />
     </div>
   }
 
+
+
+  //* ui tree
   return (
     <div className="space-y-4 bg-gray-50">
       {/* Selection toolbar - Only shows when items are selected */}
@@ -175,14 +189,18 @@ export default function OrdersTable({ ordersList,isDataLoading }: OrdersTablePro
             {selectedCount} order{selectedCount > 1 ? 's' : ''} selected
           </span>
           <div className="flex items-center gap-2">
-            <Button variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Export Selected
-            </Button>
-            <Button variant="destructive">
+            <ConfirmActionDialog
+              title={`Delete ${selectedCount} Orders?`}
+              description={'Please be carful, there wont be any way to cancel or retrieve your data'}
+              action={() => {
+                deleteAction({ orderId: null, orders: selectedOrders })
+                setSelectedOrders(new Set())
+              }}
+              trigger={<Button
+              variant="destructive">
               <Trash2 className="h-4 w-4 mr-2" />
               Delete Selected
-            </Button>
+            </Button>} />
           </div>
         </div>
       )}
@@ -305,18 +323,41 @@ export default function OrdersTable({ ordersList,isDataLoading }: OrdersTablePro
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-[160px]">
-                    <DropdownMenuItem>
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Details
+                    <DropdownMenuItem asChild>
+                      <Button
+                        onClick={() => orderServices.createRecipeForOrder(order)}
+                        variant={"outline"} className='w-full mb-1'>
+                        <ReceiptText />
+                        Create Recipe
+                      </Button>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <OrderDetailsAndEditSheet
+                        order={order}
+                        updateOrderDetails={(newOrder: Orders) => updateOrderDetails(newOrder)} />
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Button
+                        onClick={() => updateVerification(order.id)}
+                        variant={"outline"}
+                        className={`${order.verified ? " text-red-700 border-red-100" : " text-blue-700 border-blue-100"} flex gap-1 w-full`}>
+
                       <Edit className="h-4 w-4 mr-2" />
-                      Edit Order
+                      {order.verified ? "set Unverified" : "set Verified"}
+                      </Button>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive">
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete Order
+                    <DropdownMenuItem asChild>
+                      {/* delete dialog button and body */}
+                      <ConfirmActionDialog
+                        title={`Delete ${order.name} order's?`}
+                        description={'Are you sure you want to delete that order? you wont be able to cancel this operation'}
+                        action={() => deleteAction({ orderId: order.id, orders: null })} trigger={
+                        <Button className="text-destructive" variant={"outline"}>
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Order
+                      </Button>
+                    } />
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
