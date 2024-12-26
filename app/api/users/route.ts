@@ -5,7 +5,6 @@ const GET = async () => {
     try {
         // Fetch users from the database
         const users = await prisma.user.findMany();
-        console.log("result success : ",users)
         // Send a successful response with the users list
         return new NextResponse(
             JSON.stringify({ message: users }),

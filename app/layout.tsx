@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import SessionProvider from "./components/SessionProvider"
-import { getServerSession } from "next-auth";
+import { ThemeProvider } from "./providers/theme-provider"
+import { getTheme } from "@/utils/theme"
 import "./globals.css";
 import SideBarWarper from "./components/sideBar-warper";
 import { Toaster } from "@/components/ui/toaster";
@@ -30,12 +31,14 @@ export default async function RootLayout({
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&display=swap" rel="stylesheet"/>
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        className={`${geistSans.variable} ${geistMono.variable} antialiased `}>
         <SessionProvider>
+          <ThemeProvider defaultTheme={getTheme()}>
           <SideBarWarper>
             {children}
             <Toaster />
-          </ SideBarWarper>
+          </ SideBarWarper>           
+          </ ThemeProvider>
         </SessionProvider>
       </body>
     </html>

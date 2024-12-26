@@ -347,7 +347,6 @@ export default function CategoriesPage() {
                                 </DropdownMenuContent>
                             </DropdownMenu>
                     <div>
-                            <Badge className="mb-2">searching for something?</Badge>
                         <div className="relative w-full">
                                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground shadow-sm" />
                                   <Input
@@ -367,7 +366,7 @@ export default function CategoriesPage() {
                         <Table>
                             {/* header of the table */}
                             <TableHeader>
-                                <TableRow className="bg-gray-50">
+                                <TableRow className="bg-gray-50/5">
                                     <TableHead className="w-[300px]">Name</TableHead>
                                     <TableHead>Description</TableHead>
                                     <TableHead>Parent</TableHead>

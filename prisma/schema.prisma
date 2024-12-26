@@ -7,9 +7,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+type ValuesTypeForProperties {
+  value  String
+  changePrice  Boolean
+  newPrice  String?
+}
+
 type ProductsProperties {
   label          String
-  values         String
+  values         ValuesTypeForProperties[]
   selectedValue  String?
 }
 
@@ -151,4 +157,11 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+model shopPreferences {
+  shopId    String @map("_id") @id
+  shopIcon  String
+  shopName  String
 }

@@ -42,15 +42,15 @@ interface SortConfig {
 // This makes it easier to maintain and update status-related UI elements
 const statusConfig = {
   PENDING: {
-    className: "border-orange-200 text-orange-700 bg-orange-50 p-1",
+    className: "border-orange-600/10 text-orange-700 bg-orange-200/10 p-1",
     icon: PackageSearch
   },
   COMPLETED: {
-    className: "border-indigo-200 text-indigo-700 bg-indigo-50 p-1",
+    className: "border-indigo-600/10 text-indigo-700 bg-indigo-200/10 p-1",
     icon: PackageCheck
   },
   CANCELED: {
-    className: "border-gray-200 text-gray-700 bg-gray-50 p-1",
+    className: "border-gray-600/10 text-gray-700 bg-gray-200/10 p-1",
     icon: PackageX
   }
 } as const;
@@ -181,10 +181,10 @@ export default function OrdersTable({ ordersList,isDataLoading,deleteAction,upda
 
   //* ui tree
   return (
-    <div className="space-y-4 bg-gray-50">
+    <div className="space-y-4 bg-gray-400/5">
       {/* Selection toolbar - Only shows when items are selected */}
       {selectedCount > 0 && (
-        <div className="bg-gray-50 px-4 py-2 rounded-md flex items-center justify-between">
+        <div className="bg-gray-400/5 px-4 py-2 rounded-md flex items-center justify-between">
           <span className="text-sm font-medium">
             {selectedCount} order{selectedCount > 1 ? 's' : ''} selected
           </span>
@@ -208,7 +208,7 @@ export default function OrdersTable({ ordersList,isDataLoading,deleteAction,upda
       {/* Main orders table */}
       <Table className="bg-background">
         <TableHeader>
-          <TableRow className="hover:bg-transparent bg-gray-50">
+          <TableRow className="hover:bg-transparent bg-gray-400/10">
             {/* Checkbox column for bulk selection */}
             <TableHead className="w-[50px]">
               <Checkbox
@@ -283,7 +283,7 @@ export default function OrdersTable({ ordersList,isDataLoading,deleteAction,upda
               <TableCell>
                 <Badge 
                   variant="secondary" 
-                  className={`${order.verified ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-red-50 text-red-700 border-red-200"} flex gap-1 w-fit`}
+                  className={`${order.verified ? "bg-blue-400/10 text-blue-700 border-blue-600/10" : "bg-red-400/10 text-red-700 border-red-600/10"} flex gap-1 w-fit`}
                 >
                   <div className={`rounded-full w-2 h-2 ${order.verified ? "bg-blue-700" : "bg-red-700"}`} />
                   {order.verified ? "Verified" : "Not Verified"}
@@ -340,7 +340,8 @@ export default function OrdersTable({ ordersList,isDataLoading,deleteAction,upda
                       <Button
                         onClick={() => updateVerification(order.id)}
                         variant={"outline"}
-                        className={`${order.verified ? " text-red-700 border-red-100" : " text-blue-700 border-blue-100"} flex gap-1 w-full`}>
+                        className={`${order.verified ? " text-red-700 border-red-200/10" : " text-blue-700 border-blue-200/10"} flex gap-1 w-full`}
+                      >
 
                       <Edit className="h-4 w-4 mr-2" />
                       {order.verified ? "set Unverified" : "set Verified"}

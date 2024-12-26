@@ -2,7 +2,7 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 // components/CategorySelector.tsx
 import { Button } from "@/components/ui/button";
-import { Category, FormDataInterface, PropertiesInterface } from "../types/pageTypes";
+import { Category, FormDataInterface, PropertiesInterface, PropertyType } from "../types/pageTypes";
 import { FormErrors } from "../types/pageTypes";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ImageUploadSection } from "../components/image-upload-section";
@@ -15,6 +15,8 @@ import ProductsServices from "@/app/services/products/productsServices";
 import { useToast } from "@/hooks/use-toast";
 import { redirect, useRouter } from "next/navigation";
   
+
+
 
   // Create New Product Page
   export default function CreateNewProductPage(){
@@ -34,7 +36,7 @@ import { redirect, useRouter } from "next/navigation";
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true)
   // properties
-  const [properties, setProperties] = useState<PropertiesInterface[]>([]);
+  const [properties, setProperties] = useState<PropertyType[]>([]);
   const [isProductUnlimited, setIsProductUnlimited] = useState<boolean>(false);
   // error
   const [formErrors, setFormErrors] = useState<FormErrors>({});
@@ -127,7 +129,7 @@ import { redirect, useRouter } from "next/navigation";
     
       
     // Add new property
-    const addProperty = ({property}:{property:PropertiesInterface}) => {
+    const addProperty = ({property}:{property:PropertyType}) => {
         setProperties((prev) => [
             ...prev,
             {
@@ -140,15 +142,15 @@ import { redirect, useRouter } from "next/navigation";
 
       
       // Remove property
-        const removeProperty = (index: number) => {
-            setProperties((prev) => prev.filter((_, i) => i !== index));
+        const removeProperty = (label: string) => {
+            setProperties((prev) => prev.filter((item, i) => item.label !== label));
     };
     
 
       
       // edit property
-      const editProperty = (editedProperty: PropertiesInterface, itemIndex: number) => {
-          setProperties(prev => prev.map((item,index) => itemIndex === index? editedProperty : item ))
+      const editProperty = (editedProperty: PropertyType, oldLabel: string) => {
+          setProperties(prev => prev.map((item,index) => item.label === oldLabel? editedProperty : item ))
     }
     
 
@@ -278,15 +280,15 @@ import { redirect, useRouter } from "next/navigation";
                 
                 {/* properties components */}
                 <PropertiesWidget
-                    properties={properties}
-                    onPropertyAdd={(property: PropertiesInterface) => { 
+                    propertiesList={properties}
+                    onPropertyAdd={(property: PropertyType) => { 
                         addProperty({ property });
                     }}
-                    onPropertyRemoved={(propertyIndex: number) => { 
-                        removeProperty(propertyIndex);
+                    onPropertyRemove={(label: string) => { 
+                        removeProperty(label);
                     }}
-                    onPropertyEdited={(editedProperty: PropertiesInterface, itemIndex: number) => {
-                        editProperty(editedProperty, itemIndex);
+                    onPropertyUpdate={(editedProperty: PropertyType, oldLabel: string) => {
+                        editProperty(editedProperty, oldLabel);
                     }}
                 />
   

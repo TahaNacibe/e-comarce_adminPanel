@@ -57,7 +57,8 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
         {
             icon: NotebookText,
             title: "Orders Record",
-            link: "/orders"
+            link: "/orders",
+            
         },
         {
             icon: Package,
@@ -90,7 +91,7 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
         
         // already signed in user
         return (
-            <div className="flex items-center border-b pb-2 bg-gray-400/5">
+            <div className="flex items-center border-b pb-2 bg-background">
                 {/* user profile image */}
                 <div className="w-38 h-38 flex-shrink-0">
                     <ProfileImageAndPlaceHolder 
@@ -128,7 +129,7 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
     }
 
     return (
-        <div className="flex h-screen overflow-hidden bg-gray-50">
+        <div className="flex h-screen overflow-hidden ">
             <AnimatePresence>
                 {/* Mobile backdrop */}
                 {isMobileMenuOpen && (
@@ -143,7 +144,7 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
 
                 {/* side bar */}
                 <motion.div 
-                    className={`fixed lg:relative h-screen overflow-x-hidden z-40 bg-white 
+                    className={`fixed lg:relative h-screen overflow-x-hidden z-40 
                         ${isMobileMenuOpen ? 'block' : 'hidden'} lg:block`}
                     initial={{ width: "56px", x: -200 }}
                     animate={{ 
@@ -166,16 +167,16 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
                                             key={index}
                                             href={tab.link}
                                             onClick={() => onPageChange()}
-                                            className={`flex items-center gap-3 p-3 rounded-lg transition-colors 
+                                            className={`flex items-center gap-3 p-3 transition-colors 
                                                 ${isActive 
-                                                    ? "bg-blue-50 text-blue-600" 
-                                                    : "hover:bg-gray-100"
+                                                    ? "bg-blue-400/10 text-blue-600" 
+                                                    : "hover:bg-blue-400/5"
                                                 }`}
                                         >
                                             <div className="w-5 h-5">
                                                 <tab.icon 
                                                     className={`w-5 h-5 ${
-                                                        isActive ? "text-blue-600" : "text-gray-500"
+                                                        isActive ? "text-blue-600" : ""
                                                     }`} 
                                                 />
                                             </div>
@@ -186,7 +187,7 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
                                             >
                                                 {!isSideBarCollapsed && (
                                                     <span className={`${
-                                                        isActive ? "font-medium" : "text-gray-700"
+                                                        isActive ? "font-medium" : ""
                                                     } line-clamp-1 whitespace-nowrap`}>
                                                         <h1 className="text-sm font-medium">
                                                             {tab.title}

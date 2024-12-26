@@ -10,7 +10,7 @@ import { CategorySelector } from "../../components/category-selector";
 import { ImageUploadSection } from "../../components/image-upload-section";
 import { ProductDetails } from "../../components/product-details-column";
 import PropertiesWidget from "../../components/properties-widget";
-import { Category, FormDataInterface, PropertiesInterface, FormErrors } from "../../types/pageTypes";
+import { Category, FormDataInterface, PropertiesInterface, FormErrors, PropertyType } from "../../types/pageTypes";
 import CategoriesServices from "@/app/services/categories/categories_services";
 import ProductsServices from "@/app/services/products/productsServices";
 import { useToast } from "@/hooks/use-toast";
@@ -49,7 +49,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
 
   // properties
-  const [properties, setProperties] = useState<PropertiesInterface[]>([]);
+  const [properties, setProperties] = useState<PropertyType[]>([]);
 
   // loading and error states
   const [isPageLoading, setIsPageLoading] = useState(true);
@@ -147,16 +147,16 @@ export default function EditProductPage({ params }: EditProductPageProps) {
   };
 
   // Property handlers
-  const addProperty = ({property}: {property: PropertiesInterface}) => {
+  const addProperty = ({property}: {property: PropertyType}) => {
     setProperties(prev => [...prev, property]);
   };
 
-  const removeProperty = (index: number) => {
-    setProperties(prev => prev.filter((_, i) => i !== index));
+  const removeProperty = (propertyLabel: string) => {
+    setProperties(prev => prev.filter((item, i) => item.label !== propertyLabel));
   };
 
-  const editProperty = (editedProperty: PropertiesInterface, itemIndex: number) => {
-    setProperties(prev => prev.map((item, index) => itemIndex === index ? editedProperty : item));
+  const editProperty = (editedProperty: PropertyType, oldLabel: string) => {
+    setProperties(prev => prev.map((item, index) => item.label === oldLabel ? editedProperty : item));
   };
 
   // Form submission
@@ -290,15 +290,15 @@ export default function EditProductPage({ params }: EditProductPageProps) {
               />
 
               <PropertiesWidget
-                properties={properties}
-                onPropertyAdd={(property: PropertiesInterface) => {
+                propertiesList={properties}
+                onPropertyAdd={(property: PropertyType) => {
                   addProperty({ property });
                 }}
-                onPropertyRemoved={(propertyIndex: number) => {
-                  removeProperty(propertyIndex);
+                onPropertyRemove={(propertyLabel: string) => {
+                  removeProperty(propertyLabel);
                 }}
-                onPropertyEdited={(editedProperty: PropertiesInterface, itemIndex: number) => {
-                  editProperty(editedProperty, itemIndex);
+                onPropertyUpdate={(property: PropertyType, oldLabel: string) => {
+                  editProperty(property, oldLabel);
                 }}
               />
 

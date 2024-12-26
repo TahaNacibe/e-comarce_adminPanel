@@ -9,7 +9,7 @@ export interface Product {
     updatedAt: Date;
     name: string;
     description: string;
-    properties: ProductProperties[];
+    properties: PropertyType[];
     price: number;
     discountPrice?: number;
     isInDiscount: boolean;
@@ -70,11 +70,22 @@ export interface Category {
     discountPrice: string;
     productCount: string;
     selectedCategories: Category[];
-    properties: PropertiesInterface[];
+    properties: PropertyType[];
     isProductUnlimited: boolean;
 }
   
 export interface PropertiesInterface{
     label: string;
     values: string;
+}
+
+export type ValuesTypeForProperties = {
+  value: string;
+  changePrice: boolean;
+  newPrice?: string | null;
+}
+
+export type PropertyType = {
+  label: string;
+  values: ValuesTypeForProperties[];
 }

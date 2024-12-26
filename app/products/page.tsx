@@ -112,12 +112,12 @@ const PriceDisplay = ({ price, discountPrice, isInDiscount, formatCurrency }
 );
 
 //* inventory status widget
-const InventoryStatus = ({ stockCount, soldCount }: { stockCount: number; soldCount: number }) => {
+const InventoryStatus = ({ stockCount, isStockCount }: { stockCount: number, isStockCount:boolean }) => {
     
   //* getStatusBadge function return the stock case badge
   const getStatusBadge = (count: number) => {
-    if (count === 0) return <Badge variant="destructive">Out of Stock</Badge>;
-    if (count < LOW_STOCK_THRESHOLD) return <Badge variant="destructive">Low Stock</Badge>;
+    if (count === 0) return <Badge variant={isStockCount? "destructive" : "outline"}>{ isStockCount? "Out of Stock" : "Sold Nothing" }</Badge>;
+    if (count < LOW_STOCK_THRESHOLD) return <Badge variant="destructive">{ isStockCount? "Low Stock" : "Sold" }</Badge>;
     return <Badge>In Stock</Badge>;
   };
 
@@ -128,9 +128,6 @@ const InventoryStatus = ({ stockCount, soldCount }: { stockCount: number; soldCo
         <span className="font-medium">{stockCount}</span>
         {getStatusBadge(stockCount)}
       </div>
-      <span className="text-xs text-muted-foreground">
-        {soldCount} sold
-      </span>
     </div>
   );
 };
@@ -381,7 +378,7 @@ const ProductsPage = () => {
                   
                   
           {/* Products Table */}
-          <div className="rounded-md border bg-white">
+          <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
@@ -396,7 +393,9 @@ const ProductsPage = () => {
                     </div>
                   </TableHead>
                   <TableHead>Price</TableHead>
+                  <TableHead>Properties</TableHead>
                   <TableHead>Inventory</TableHead>
+                  <TableHead>Sold</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -429,9 +428,18 @@ const ProductsPage = () => {
                         />
                       </TableCell>
                       <TableCell>
+                       {product.properties.length}
+                      </TableCell>
+                      <TableCell>
                         <InventoryStatus
                           stockCount={product.stockCount}
-                          soldCount={product.soldCount}
+                          isStockCount={true}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <InventoryStatus
+                          stockCount={product.soldCount}
+                          isStockCount={false}
                         />
                       </TableCell>
                       <TableCell>

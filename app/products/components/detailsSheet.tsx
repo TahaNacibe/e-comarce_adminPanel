@@ -181,9 +181,9 @@ export default function ProductsDetailsSheet({
                         {property.label}
                       </Badge>
                       <div className="flex flex-wrap gap-2">
-                        {property.values.split(",").map((value, valueIndex) => (
+                        {property.values.map((value, valueIndex) => (
                           <Badge variant="secondary" key={valueIndex} className="text-xs">
-                            {value.trim()}
+                            {value.value.trim()} {value.changePrice? `| Price: ${value.newPrice}DZD` : null}
                           </Badge>
                         ))}
                       </div>

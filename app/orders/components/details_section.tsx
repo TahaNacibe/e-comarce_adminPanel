@@ -72,31 +72,31 @@ const InformationTag = ({
       bg: 'bg-green-500',
       text: 'text-green-500',
       hover: 'hover:border-green-200',
-      light: 'bg-green-50'
+      light: 'bg-green-50/10'
     },
     yellow: {
       bg: 'bg-yellow-500',
       text: 'text-yellow-500',
       hover: 'hover:border-yellow-200',
-      light: 'bg-yellow-50'
+      light: 'bg-yellow-50/10'
     },
     red: {
       bg: 'bg-red-500',
       text: 'text-red-500',
       hover: 'hover:border-red-200',
-      light: 'bg-red-50'
+      light: 'bg-red-50/10'
     },
     emerald: {
       bg: 'bg-emerald-500',
       text: 'text-emerald-500',
       hover: 'hover:border-emerald-200',
-      light: 'bg-emerald-50'
+      light: 'bg-emerald-50/10'
     },
     orange: {
       bg: 'bg-orange-500',
       text: 'text-orange-500',
       hover: 'hover:border-orange-200',
-      light: 'bg-orange-50'
+      light: 'bg-orange-50/10'
     }
   };
 
@@ -169,7 +169,7 @@ const InformationTag = ({
                 <span>Progress</span>
                 <span className="font-medium">{percentage}%</span>
               </div>
-              <div className="h-2 rounded-full overflow-hidden bg-gray-100">
+              <div className="h-2 rounded-full overflow-hidden bg-gray-100/10">
                 <div 
                   className={`
                     h-full 
@@ -332,7 +332,7 @@ export default function OrdersDashboard({ formData }: { formData: FormDataInterf
           <Button
             variant="outline"
             size="icon"
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white hover:bg-gray-100 shadow-lg"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 hover:bg-gray-100/10 shadow-lg"
             onClick={() => scroll('left')}
             aria-label="Scroll left"
           >
@@ -344,7 +344,7 @@ export default function OrdersDashboard({ formData }: { formData: FormDataInterf
           <Button
             variant="outline"
             size="icon"
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white hover:bg-gray-100 shadow-lg"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 hover:bg-gray-100/10 shadow-lg"
             onClick={() => scroll('right')}
             aria-label="Scroll right"
           >
