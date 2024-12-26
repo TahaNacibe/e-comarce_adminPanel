@@ -18,6 +18,18 @@ interface PropertyWidgetProps {
 }
 
 
+type ValuesTypeForProperties = {
+    value: string,
+            changePrice: boolean,
+            newPrice: number,
+}
+
+type PropertyType = {
+    label: string,
+    values: ValuesTypeForProperties[]
+}
+
+
 
 export default function PropertiesWidget({ 
     properties, 
@@ -31,7 +43,24 @@ export default function PropertiesWidget({
     const [label, setLabel] = useState("");     
     const [values, setValues] = useState(""); 
     const [isInEdit, setIsInEdit] = useState(false)
-    const [editedPropertyIndex,setOnEditPropertyIndex] = useState<number | null>(null)
+    const [editedPropertyIndex, setOnEditPropertyIndex] = useState<number | null>(null)
+    const [property, setProperty] = useState<PropertyType>()
+    const [propertiesList, setPropertiesList] = useState<PropertyType[]>([])
+
+
+    //* add a new property item
+    const handleAddNewPropertyItem = (e: React.MouseEvent) => {
+        e.preventDefault()
+        if (label.trim() && propertiesList.some((property) => property.label.toLowerCase() !== label.trim().toLowerCase())) {
+            const newPropertyItem: PropertyType = {
+                label,
+                values:[]
+            }
+            setPropertiesList(prev => [...prev, newPropertyItem])
+        }
+    }
+
+
 
 
     // Handler for adding new properties

@@ -230,7 +230,10 @@ import { redirect, useRouter } from "next/navigation";
                   onRemoveBigImage={() => setBigImage(null)}
                   onRemoveSmallImage={removeSmallImage}
                   errors={formErrors}
-                />
+                  existingBigImage={null}
+                  existingSmallImages={null}
+                  onRemoveExistingBigImage={() => { }}
+                  onRemoveExistingSmallImage={() => { }} />
               </div>
   
               {/* Right Column - Product Details */}

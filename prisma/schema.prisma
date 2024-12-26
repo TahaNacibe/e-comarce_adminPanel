@@ -10,11 +10,14 @@ datasource db {
 type ProductsProperties {
   label          String
   values         String
+  selectedValue  String?
 }
 
 type OrderProductMetadata {
   productId   String @db.ObjectId
   productImage String?
+  productProperties ProductsProperties[]
+  selectedProperties String[]
   productName String
   quantity    Int
   unitePrice  Float

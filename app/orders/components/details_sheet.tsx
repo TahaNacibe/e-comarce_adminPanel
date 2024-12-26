@@ -51,6 +51,23 @@ const ORDER_STATUSES = {
 
 type OrderStatus = keyof typeof ORDER_STATUSES;
 
+
+type product = {
+  productId: string;
+  productImage: string | null;
+  selectedProperties: string[];
+  productName: string;
+  quantity: number;
+  unitePrice: number;
+} & {
+  productProperties: {
+      label: string;
+      values: string;
+      selectedValue: string | null;
+  }[];
+}
+
+
 const OrderDetailsAndEditSheet = ({ order,updateOrderDetails }: { order: Orders,updateOrderDetails:any }) => {
   const [isReadOnly, setIsReadOnly] = useState(true);
     const [orderData, setOrderData] = useState<Orders>(order);
@@ -106,11 +123,94 @@ const OrderDetailsAndEditSheet = ({ order,updateOrderDetails }: { order: Orders,
     }));
   };
 
+
+  const updatePropertiesSelection = ({ key, newValue,productId }: { key: string, newValue: string,productId:string }) => {
+    let productData = order.orderMetaData.productsMetaDataList.filter((product) => product.productId === productId)
+    if (productData.length !== 1) return;
+    const updatedProperties = productData[0].selectedProperties.map((property) => {
+      const pairKeyValue = property.split('_')
+      if (pairKeyValue[0] === key) {
+        const newProperty = `${key}_${newValue}`
+        return newProperty
+      } else {
+        return property
+      }
+    })
+      
+    productData[0].selectedProperties = updatedProperties
+    const updatedProductsMetaData = order.orderMetaData.productsMetaDataList.map((product) => product.productId === productId? productData[0] : product)
+    setOrderData(prev => {
+      const { orderMetaData, ...rest } = prev
+        return {
+          ...rest,
+          orderMetaData: {
+            ...orderMetaData,
+            productsMetaDataList:updatedProductsMetaData
+          }
+        }
+    })
+  }
+
+
     const handleSave = () => {
         setIsReadOnly(true)
         setSheetControllerState(false)
     updateOrderDetails(orderData)
   };
+
+
+
+  const PropertiesWidget = ({ product }: { product: product }) => {
+    console.log(product)
+    if (isReadOnly) {
+      return (
+        <div className='flex gap-1 p-1'>
+                        {product.selectedProperties?.map((property:any,index:number) => {
+                            return (
+                              <div key={index} className='flex gap-1'>
+                            <Badge variant={"outline"} className='py-1'>{property.replace("_"," : ")}</Badge>
+                          </div>
+                            )
+                        })}
+                        </div>
+      )
+    } else {
+     // Flatten selectedProperties into a single object for easier lookups
+const selectedPropertiesObject = product.selectedProperties.reduce<Record<string, string>>((acc, item) => {
+  const [key, value] = item.split("_"); // Split item into key and value
+  acc[key] = value; // Add key-value pair to the accumulator object
+  return acc;
+}, {});
+
+return (
+  <div className=''>
+    {product.productProperties.map((property, index) => {
+      const valuesList = property.values.split(","); // Split values into an array
+      return (
+        <div key={index} className='py-1 flex gap-1'>
+          <Badge> {property.label} </Badge>
+          <div className='flex gap-1'>
+          {valuesList.map((value, valueIndex) => (
+            <Button
+              key={valueIndex}
+              onClick={() => updatePropertiesSelection({key:property.label,productId:product.productId,newValue:value})}
+              variant={selectedPropertiesObject[property.label] === value ? "default" : "outline"}
+            >
+              {value}
+            </Button>
+          ))}
+          </div>
+        </div>
+      );
+    })}
+  </div>
+);
+
+    }
+  }
+
+
+
 
   return (
     <Sheet open={sheetController} onOpenChange={(state) => setSheetControllerState(state)}>
@@ -288,6 +388,10 @@ const OrderDetailsAndEditSheet = ({ order,updateOrderDetails }: { order: Orders,
                           <Plus className="h-4 w-4" />
                         </Button>
                         <span>{orderData?.orderMetaData?.currency} {product.unitePrice.toFixed(2)}</span>
+                      </div>
+                      {/* product properties */}
+                      <div className='flex gap-1 p-1'>
+                        <PropertiesWidget product={product}/>
                       </div>
                     </div>
                   </div>

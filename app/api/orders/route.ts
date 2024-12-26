@@ -89,7 +89,7 @@ const GET = async (req: NextRequest) => {
         });
 
         const productIds = orders.flatMap(order => order.orderMetaData.productsMetaDataList.map(product => product.productId));
-        // Fetch products in bulk to get images
+        // Fetch products in bulk to get images and properties
         const products = await prisma.products.findMany({
             where: {
             id: {
@@ -98,7 +98,8 @@ const GET = async (req: NextRequest) => {
             },
             select: {
             id: true,
-            bigImageUrl: true, // Select only the image field
+            bigImageUrl: true,
+            properties: true
             }
         });
         // Map the images to their respective orders
@@ -109,6 +110,7 @@ const GET = async (req: NextRequest) => {
             return {
                 ...productMetadata,
                 productImage: product ? product.bigImageUrl : "image_placeholder.jpg", // Attach the image
+                productProperties: product ? product.properties : null
             };
             });
         
