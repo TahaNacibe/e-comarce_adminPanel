@@ -172,7 +172,6 @@ const POST = async (req: Request) => {
         // new product section code
             // get formdata
             const { rest, bigImageUrl, smallImageUrls } = await req.json()
-            console.log(rest,bigImageUrl,smallImageUrls)
 
             // images have been edited before sent and replaced with urls
             const newProduct = await prisma.products.create({
@@ -187,7 +186,6 @@ const POST = async (req: Request) => {
 
 
     } catch (error: any) {
-        console.log("error : ",error)
         return NextResponse.json(
             { message: "error", error:error },
             { status: 500 }

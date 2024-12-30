@@ -176,7 +176,6 @@ const DELETE = async (req: NextRequest) => {
   
       // Single order deletion
         if (orderId) {
-          console.log("--------------------> ")
         // Check if the target order exists
         const targetForDelete = await prisma.orders.count({
           where: { id: orderId },
@@ -229,43 +228,67 @@ const DELETE = async (req: NextRequest) => {
 
 const PUT = async (req: NextRequest) => {
     try {
-        console.log("stop 0")
         //* get params
         const { searchParams } = new URL(req.url)
         const orderId = searchParams.get("orderId")
         const isUpdateVerification = searchParams.get("updateVerification")
-
-        // get the updated order
-        console.log("stop 1")
         
-        //* toggle state action
-        if (isUpdateVerification) {
-            if (!orderId) return NextResponse.json({message:"Require Order iD"},{status:400})
-            //* get the element
-            const item = await prisma.orders.findUnique({
-                where: { id: orderId },
-                select: { verified: true }, // Fetch only the boolean field
+        // Toggle state action
+if (isUpdateVerification) {
+    const updateCount: { productId: string, quantity: number }[] = await req.json();
+
+    if (!orderId || !updateCount) {
+        return NextResponse.json({ message: "Require Order ID and product data" }, { status: 400 });
+    }
+
+    // Get the element
+    const item = await prisma.orders.findUnique({
+        where: { id: orderId },
+        select: { verified: true }, // Fetch only the boolean field
+    });
+
+    if (!item) {
+        return NextResponse.json({ message: "No Order with that id" }, { status: 404 });
+    }
+
+    // Update the order verification state
+    await prisma.orders.update({
+        where: { id: orderId },
+        data: {
+            verified: !item?.verified,
+        },
+    });
+
+    // Aggregate the quantities for each productId
+    const updateCountRecord: Record<string, number> = updateCount.reduce<Record<string, number>>(
+        (acc, updateAction) => {
+            acc[updateAction.productId] = (acc[updateAction.productId] || 0) + updateAction.quantity;
+            return acc;
+        },
+        {}
+    );
+
+    // Update stock and sold counts in the database
+    await Promise.all(
+        Object.entries(updateCountRecord).map(([productId, totalQuantity]) => {
+            const updateData = item.verified
+                ? { stockCount: { increment: totalQuantity }, soldCount: { decrement: totalQuantity } }
+                : { stockCount: { decrement: totalQuantity }, soldCount: { increment: totalQuantity } };
+
+            return prisma.products.update({
+                where: { id: productId },
+                data: updateData,
             });
-            
-            if(!item) return NextResponse.json({message:"No Order with that id"},{status:404})
+        })
+    );
 
-            await prisma.orders.update({
-                where: {
-                    id:orderId
-                },
-                data: {
-                    verified:!item?.verified
-                }
-            })
-
-            return NextResponse.json({message:"Verification state updated!"},{status:200})
-        }
+    return NextResponse.json({ message: "Verification state updated!" }, { status: 200 });
+}
 
 
-        console.log("stop 2")
+
         //* update a whole order
         const { newOrder } = await req.json()
-        console.log("stop 3 ",newOrder)
         const updateOrderId = newOrder.id;
         if(!updateOrderId) return NextResponse.json({message:"No Order Id received"},{status:400})
         const updateTargetOrder = await prisma.orders.findUnique({
@@ -276,9 +299,7 @@ const PUT = async (req: NextRequest) => {
 
         if(!updateTargetOrder) return NextResponse.json({message:"No Order with that Id found"},{status:404})
 
-        console.log("reached deep enough")
         const { id, ...rest } = newOrder
-        console.log("---------------> ",id,rest)
         const updatedOrder = await prisma.orders.update({
             where: { id: updateOrderId },
             data:rest
@@ -286,7 +307,6 @@ const PUT = async (req: NextRequest) => {
 
         return NextResponse.json({message:"Order updated!",updatedOrder},{status:200})
     } catch (error:any) {
-        console.log(error.toString())
         return NextResponse.json({message:"Something went wrong updating the order info"},{status:500})
     }
 }

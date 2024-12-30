@@ -71,7 +71,6 @@ class ProductsServices{
 
             // check if the request was successful
             if (response.ok) {
-                console.log(`Product ${productId} deleted successfully`);
                 // remove the product from the list of products in the user end
                 setFilteredProducts((prevProducts: Product[]) => prevProducts.filter((product: Product) => product.id !== productId));
                 // update the total products count
@@ -177,7 +176,6 @@ class ProductsServices{
             // check response state
             if (response.ok) {
                 const data = await response.json()
-                console.log("data ---> ",data)
                 return { success: true, message: "Product created!", data:data.product}
             }
 

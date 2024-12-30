@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react';
-import { Moon, Sun, Upload, PlusCircle, UserRoundPlus, UserRoundMinus, Pencil, Save } from 'lucide-react';
+import { Moon, Sun, Upload, PlusCircle, UserRoundPlus, UserRoundMinus, Pencil, Save, LoaderCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ import { useToast } from '@/hooks/use-toast';
 import { User } from '@prisma/client';
 import { useTheme } from "@/app/providers/theme-provider"
 import SettingsInput from './components/settings_input';
+import { useRouter } from 'next/navigation';
 
 const PreferencesPage = () => {
   // Shop Identity States
@@ -65,14 +66,24 @@ const PreferencesPage = () => {
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [subAdmins, setSubAdmins] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [isPageLoading, setIsPageLoading] = useState(true);
     
   
   const preferencesServices = new PreferencesServices();
   const { data: session } = useSession();
+  const router = useRouter()
     const { toast } = useToast();
     const { theme, setTheme } = useTheme()
   
-    const AUTH_USERS = ["ADMIN", "SUB_ADMIN", "DEVELOPER"];
+  const AUTH_USERS = ["ADMIN", "SUB_ADMIN", "DEVELOPER"];
+  
+  const checkIfAuthorized = () => {
+    if (!AUTH_USERS.includes(session?.user.role!)) {
+      router.push("/unauthorized-access")
+    }
+  }
+
+
     
     useEffect(() => {
         // Check theme after component mounts
@@ -153,7 +164,6 @@ const PreferencesPage = () => {
       }
 
       const response = await preferencesServices.updateShopDetails({shopDetails:tempShopDetails, newIcon:imageUrl});
-      console.log(response)
       if (response.success) {
         setShopDetails({
           name: tempShopDetails.name,
@@ -186,7 +196,6 @@ const PreferencesPage = () => {
         setUserSearchInput(e)
         setLoadingUsers(true)
         
-        // console.log(e)
     }
 
   // Sub-Admin Management Functions
@@ -258,8 +267,12 @@ const PreferencesPage = () => {
 
 
   useEffect(() => {
+    if (session) {
+      checkIfAuthorized()
       loadAuthUsers();
       getShopDetails()
+      setIsPageLoading(false)
+    }
   }, [session]);
 
   useEffect(() => {
@@ -268,6 +281,13 @@ const PreferencesPage = () => {
     }, 500);
     return () => clearTimeout(timer);
   }, [userSearchInput]);
+
+  if (isPageLoading) {
+    return <div className='flex w-screen h-screen items-center justify-center'>
+      <LoaderCircle className='animate-spin' />
+    </div>
+  }
+
 
   return (
     <div className="min-h-screen p-8 bg-background">
@@ -282,7 +302,7 @@ const PreferencesPage = () => {
         <div className="grid gap-8">
           {/* Shop Identity */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <CardHeader className="flex flex-col md:flex-row md:items-center justify-between space-y-1">
               <div>
                 <CardTitle>Shop Identity</CardTitle>
                 <CardDescription>
@@ -318,7 +338,7 @@ const PreferencesPage = () => {
               )}
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex items-start gap-6">
+              <div className="flex flex-col md:flex-row items-start gap-6">
                 <div className="relative w-40 h-40 border-2 border-dashed rounded-xl flex items-center justify-center bg-muted/50 hover:bg-muted transition-colors">
                   {(shopDetails.isEditing ? tempShopDetails.image : shopDetails.image) ? (
                     <img 
@@ -343,7 +363,7 @@ const PreferencesPage = () => {
                   )}
                 </div>
                 {/* main settings */}
-                <div className='grid grid-cols-2 gap-4'>
+                <div className='md:grid md:grid-cols-2 gap-4'>
                 {/* shop name */}
                 <SettingsInput
                   isEditing={shopDetails.isEditing}
@@ -375,7 +395,7 @@ const PreferencesPage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-            <div className='grid grid-cols-2 gap-4'>
+            <div className='md:grid md:grid-cols-2 gap-4'>
                 {/* Email address */}
                 <SettingsInput
                   isEditing={shopDetails.isEditing}
@@ -442,16 +462,15 @@ const PreferencesPage = () => {
                 <TableBody>
                   {allUsers.map(user => (
                     <TableRow key={user.id}>
-                      <TableCell className="flex items-center gap-1">
+                      <TableCell className="flex flex-col md:flex-row items-center gap-1">
                         <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
                           <ProfileImageAndPlaceHolder userName={user.name} userImage={user.image} />
                         </div>
                         <div>
                           <p className="font-medium">{user.name}</p>
-                          <p className="text-sm text-muted-foreground">{user.email}</p>
+                          <p className="text-sm text-muted-foreground hidden md:block">{user.email}</p>
                         </div>
                       </TableCell>
-                      <TableCell>{user.addedAt}</TableCell>
                       <TableCell>
                               <Badge variant="secondary">{ user.role }</Badge>
                       </TableCell>
@@ -486,7 +505,6 @@ const PreferencesPage = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>User</TableHead>
-                    <TableHead>Added On</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -494,16 +512,15 @@ const PreferencesPage = () => {
                 <TableBody>
                   {subAdmins.map(admin => (
                     <TableRow key={admin.id}>
-                      <TableCell className="flex items-center gap-2">
+                      <TableCell className="flex flex-col md:flex-row md:items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
                           <ProfileImageAndPlaceHolder userName={admin.name} userImage={admin.image} />
                         </div>
                         <div>
                           <p className="font-medium">{admin.name}</p>
-                          <p className="text-sm text-muted-foreground">{admin.email}</p>
+                          <p className="hidden md:block text-sm text-muted-foreground">{admin.email}</p>
                         </div>
                       </TableCell>
-                      <TableCell>{admin.addedAt}</TableCell>
                       <TableCell>
                               <Badge variant="secondary">{ admin.role }</Badge>
                       </TableCell>

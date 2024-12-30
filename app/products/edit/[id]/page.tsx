@@ -232,9 +232,9 @@ export default function EditProductPage({ params }: EditProductPageProps) {
           <CardTitle>Edit Product</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="flex gap-8">
+          <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-8">
             {/* Left Column - Images */}
-            <div className="w-1/2">
+            <div className="md:w-1/2">
               <ImageUploadSection
                 bigImage={bigImage}
                 smallImages={smallImages}
@@ -253,7 +253,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
             </div>
 
             {/* Right Column - Product Details */}
-            <div className="w-1/2 space-y-8">
+            <div className="md:w-1/2 space-y-8">
               <ProductDetails
                 productTitle={productTitle}
                 productDescription={productDescription}

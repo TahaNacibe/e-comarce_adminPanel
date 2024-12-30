@@ -353,7 +353,7 @@ export default function CategoriesPage() {
                 <CardContent>
                 {/* items builder */}
                      {/* search section */}
-                    <div className="mb-6 flex justify-between items-end">
+                    <div className="mb-6 flex justify-between items-end flex-col md:flex-row">
                         <Badge className="mb-2 h-fit">Total of {filteredList.length} Categories</Badge>
                         <div className="flex items-end gap-4">
                             {/* filter */}
@@ -375,7 +375,7 @@ export default function CategoriesPage() {
                                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground shadow-sm" />
                                   <Input
                                     placeholder="Search Categories..."
-                                    className="pl-10 w-96"
+                                    className="pl-10 max-w-md"
                                     value={searchQuery}
                                     onChange={(e) => searchByName(e.target.value)}
                                 />
@@ -418,7 +418,7 @@ export default function CategoriesPage() {
                                                     {category.name}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell className="text-muted-foreground max-w-md">
+                                            <TableCell className="text-muted-foreground max-w-md line-clamp-2 md:line-clamp-3">
                                                 {category.description || "No description"}
                                             </TableCell>
 

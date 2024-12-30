@@ -99,7 +99,7 @@ export function ImageUploadSection({
       </div>
 
       {/* Additional Images Section */}
-      <div className="space-y-2">
+      <div className="space-y-2 pb-3 md:pb-0">
         <Badge>
           Additional Images{" "}
           {errors.smallImages && (
@@ -110,7 +110,7 @@ export function ImageUploadSection({
           Note: The more images you add, the longer it will take to upload the
           product. Please be patient and add only necessary images.
         </p>
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid md:grid-cols-4 grid-cols-2 gap-4">
           {/* Display existing additional images */}
           {existingSmallImages?.map((imageUrl, index) => (
             <div key={`existing-${index}`} className="relative group">
@@ -160,7 +160,7 @@ export function ImageUploadSection({
           ))}
 
           {/* Add new image button */}
-          <label className="cursor-pointer flex items-center justify-center w-full h-40 border-2 border-dashed rounded-lg hover:bg-gray-50 transition-colors">
+          <label className="cursor-pointer flex items-center justify-center w-full h-40 border-2 border-dashed rounded-lg hover:bg-gray-50/10 transition-colors">
             <input
               type="file"
               className="hidden"

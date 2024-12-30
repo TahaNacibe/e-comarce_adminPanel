@@ -143,7 +143,6 @@ const PUT = async (req: NextRequest) => {
 
         return NextResponse.json({message:"Category updated successfully",updatedCategory},{status:200})
     } catch (error) {
-        console.log(error)
         return NextResponse.json({message:"Failed to update category",error},{status:500})
     }
 }

@@ -160,14 +160,17 @@ export default function OrdersPage() {
   }
 
 
-  const handleVerificationStateChange = async (orderId: string) => {
+  const handleVerificationStateChange = async (orderId: string, order:Orders) => {
     // inform user
     toast({
       title: "change Verification state",
       description:"updating order data..."
     })
+
+    //* create update params
+    const updateCount = order.orderMetaData.productsMetaDataList.map((productMetaData) => ({productId:productMetaData.productId, quantity:productMetaData.quantity}))
     // request change
-    const response = await ordersServices.updateVerificationStateForOrder({ orderId })
+    const response = await ordersServices.updateVerificationStateForOrder({ orderId, updateCount})
     if (response.success) {
       setOrdersList((prev) =>
         prev.map((order) =>
@@ -242,7 +245,7 @@ export default function OrdersPage() {
           <div className="space-y-2">
             <h1 className="text-2xl font-medium">Orders Dashboard</h1>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-col md:flex-row">
             <Button
               onClick={() => handleExportActionRequest("excel")}
               className="gap-2">
@@ -287,12 +290,14 @@ export default function OrdersPage() {
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search orders..."
-                className="pl-9 w-[250px] shadow-none"
+                className="pl-9 shadow-none"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)} // Update search query directly
               />
             </div>
             {/* Refresh button */}
+            <div className="flex gap-1 flex-col md:flex-row">
+
             <Button
               variant={"outline"}
               className=" px-2 shadow-none"
@@ -324,6 +329,7 @@ export default function OrdersPage() {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+            </div>
           </div>
           {/* Pagination */}
           <div>
@@ -344,7 +350,7 @@ export default function OrdersPage() {
           isDataLoading={isDataLoading}
           orderServices={ordersServices}
           deleteAction={({orderId,orders}:{orderId: string,orders:string[]}) => handleDeleteOperations({orderId,ordersList:orders})}
-          updateVerification={(orderId: string) => handleVerificationStateChange(orderId)}
+          updateVerification={(orderId: string,order:Orders) => handleVerificationStateChange(orderId,order)}
           updateOrderDetails ={(newOrder: Orders) => handleUpdateOrder(newOrder)}
         />
       </CardContent>

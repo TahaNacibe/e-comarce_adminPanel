@@ -30,7 +30,6 @@ export default class CategoriesServices {
         : { title: string, description: string, parent: Category | null }) => {
         
         const parentId = parent? parent.id : null
-        console.log(title,description,parent)
         try {
             const response = await fetch("/api/categories/", {
                 method: "POST",
@@ -69,7 +68,6 @@ export default class CategoriesServices {
 
             return {success:false, message:"Couldn't delete the category!", data:`Error ${response.status}`}
         } catch (error: any) {
-            console.log("it's that case bitch")
             return {success:false, message:"Failed to delete Category", data:error.message}
         }
     }

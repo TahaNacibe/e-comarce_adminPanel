@@ -2,6 +2,8 @@
 import { Button } from "@/components/ui/button"
 import { signIn, signOut, useSession } from "next-auth/react"
 import Image from "next/image"
+import { redirect } from "next/navigation";
+import { useEffect } from "react";
 
 export default function SignInPage() {
     // consts
@@ -12,11 +14,16 @@ export default function SignInPage() {
 
     // functions 
     const handleSignIn = () => {
-        session? signOut()  : signIn("google")
+        session ? signOut() : signIn("google")
+       
       
     }
 
-    console.log("session state : ",session)
+    useEffect(() => {
+        if (session) {
+            redirect("/")
+        }
+    },[session])
     return (
         <section className="flex items-center justify-center h-screen">
             <div className="text-center">

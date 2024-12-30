@@ -9,7 +9,6 @@ const GET = async (req: NextRequest) => {
         //* check if search exist 
         const { searchParams } = new URL(req.url)
         const searchQuery = searchParams.get("searchQuery")
-        console.log(searchQuery)
 
         if (searchQuery) {
             //* preform search for a user by name or email
@@ -131,7 +130,6 @@ const POST = async (req: NextRequest) => {
             );
         }
     } catch (error: any) {
-        console.log(error.message)
         return NextResponse.json(
             { message: "Error handling shop data", error: error.message },
             { status: 500 }

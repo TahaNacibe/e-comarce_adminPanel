@@ -40,6 +40,7 @@ import {
   Plus
 } from "lucide-react";
 import { Orders } from '@prisma/client';
+import { toast } from '@/hooks/use-toast';
 
 const ORDER_STATUSES = {
   PENDING: { label: "Pending", color: "bg-yellow-500/10 text-yellow-700 hover:bg-yellow-500/20" },
@@ -60,16 +61,16 @@ type product = {
 } & {
   productProperties: {
       label: string;
-      values: string;
+      values: [{value:string,changePrice:boolean,newPrice?:string}];
       selectedValue: string | null;
   }[];
 }
 
 
-const OrderDetailsAndEditSheet = ({ order,updateOrderDetails }: { order: Orders,updateOrderDetails:any }) => {
+const OrderDetailsAndEditSheet = ({ order, updateOrderDetails }: { order: Orders, updateOrderDetails: any }) => {
   const [isReadOnly, setIsReadOnly] = useState(true);
-    const [orderData, setOrderData] = useState<Orders>(order);
-    const [sheetController,setSheetControllerState] = useState(false)
+  const [orderData, setOrderData] = useState<Orders>(order);
+  const [sheetController, setSheetControllerState] = useState(false)
 
   const handleInputChange = (field: keyof Orders, value: string) => {
     setOrderData(prev => ({
@@ -85,13 +86,13 @@ const OrderDetailsAndEditSheet = ({ order,updateOrderDetails }: { order: Orders,
       const product = products[productIndex];
       
       if (product) {
-        product.quantity = increment ? 
-          product.quantity + 1 : 
+        product.quantity = increment ?
+          product.quantity + 1 :
           Math.max(1, product.quantity - 1);
         
         // Recalculate total price
         const newTotalPrice = products.reduce(
-          (sum, p) => sum + (p.quantity * p.unitePrice), 
+          (sum, p) => sum + (p.quantity * p.unitePrice),
           0
         );
         
@@ -104,15 +105,15 @@ const OrderDetailsAndEditSheet = ({ order,updateOrderDetails }: { order: Orders,
       
       return newData;
     });
-    };
+  };
     
 
-    const handleExitEditMode = () => {
-        if (!isReadOnly) {
-            setOrderData(order)
-        }
-        setIsReadOnly(!isReadOnly)
+  const handleExitEditMode = () => {
+    if (!isReadOnly) {
+      setOrderData(order)
     }
+    setIsReadOnly(!isReadOnly)
+  }
 
   const handleStatusChange = (status: OrderStatus) => {
     setOrderData(prev => ({
@@ -122,32 +123,81 @@ const OrderDetailsAndEditSheet = ({ order,updateOrderDetails }: { order: Orders,
   };
 
 
-  const updatePropertiesSelection = ({ key, newValue,productId }: { key: string, newValue: string,productId:string }) => {
-    let productData = order.orderMetaData.productsMetaDataList.filter((product) => product.productId === productId)
-    if (productData.length !== 1) return;
-    const updatedProperties = productData[0].selectedProperties.map((property) => {
-      const pairKeyValue = property.split('_')
-      if (pairKeyValue[0] === key) {
-        const newProperty = `${key}_${newValue}`
-        return newProperty
-      } else {
-        return property
+  const updatePropertiesSelection = ({
+    index,
+    propertyIndex,
+    key,
+    newValue,
+    productId,
+    newPriceChange,
+  }: {
+    index: number;
+    propertyIndex: number;
+    key: string;
+    newValue: string;
+    productId: string;
+    newPriceChange?: string;
+  }) => {
+    // Find the product by index
+    const productData = order.orderMetaData.productsMetaDataList[index];
+  
+  
+    // Update the selectedProperties array for the product
+    const updatedProperties = productData.selectedProperties.map((property) => {
+      // Parse the JSON string into an object
+      let propertyObject = JSON.parse(property);
+  
+      // Check if the value is an object (nested properties like 'value', 'price', etc.)
+      if (typeof propertyObject === "string") {
+        propertyObject = JSON.parse(propertyObject);
       }
-    })
-      
-    productData[0].selectedProperties = updatedProperties
-    const updatedProductsMetaData = order.orderMetaData.productsMetaDataList.map((product) => product.productId === productId? productData[0] : product)
-    setOrderData(prev => {
-      const { orderMetaData, ...rest } = prev
-        return {
-          ...rest,
-          orderMetaData: {
-            ...orderMetaData,
-            productsMetaDataList:updatedProductsMetaData
+  
+      // Check if the key exists in the propertyObject
+      if (propertyObject.hasOwnProperty(key)) {
+  
+        // If the value is an object (like 'value' and 'price'), update it
+        if (typeof propertyObject[key] === "object") {
+          propertyObject[key].value = newValue;
+  
+          // If a price change is provided, update price and flag changePrice
+          if (newPriceChange) {
+            propertyObject[key].price = newPriceChange;
+            propertyObject[key].changePrice = true; // Indicate price change
+          } else if (propertyObject[key].price) {
+            // If there was no price change but a price existed, retain original price
+            propertyObject[key].changePrice = false; // No change
           }
+        } else {
+          // If it's a simple value (like 'color'), update the key directly
+          propertyObject[key] = newValue;
         }
-    })
-  }
+      }
+  
+      // Convert the updated property back to a JSON string
+      return JSON.stringify(propertyObject);
+    });
+  
+    // Update the product's selectedProperties
+    productData.selectedProperties = updatedProperties;
+  
+    // Update the product metadata in the products list
+    order.orderMetaData.productsMetaDataList[index] = productData;
+  
+    // Update the order data in state
+    setOrderData((prev) => {
+      const { orderMetaData, ...rest } = prev;
+      return {
+        ...rest,
+        orderMetaData: {
+          ...orderMetaData,
+          productsMetaDataList: order.orderMetaData.productsMetaDataList,
+        },
+      };
+    });
+  
+  };
+  
+  
 
 
     const handleSave = () => {
@@ -157,52 +207,136 @@ const OrderDetailsAndEditSheet = ({ order,updateOrderDetails }: { order: Orders,
   };
 
 
+  type Property = {
+    value: string | undefined;
+    price: string | undefined;
+    changePrice: boolean | undefined;
+    newPrice: string | undefined;
+  };
+  
 
-  const PropertiesWidget = ({ product }: { product: product }) => {
-    console.log(product)
+  function restructurePropertiesFromStringArray(selectedProperties: string[]): Record<string, Property> {
+    return selectedProperties.reduce<Record<string, Property>>((acc, item) => {
+        try {
+            let parsedItem: Record<string, any>; // Allowing 'any' for handling mixed types
+  
+            parsedItem = JSON.parse(item); // First parse
+  
+            // If the parsedItem is still a string, try parsing it again (this is a safeguard for double parsing)
+            if (typeof parsedItem === 'string') {
+                parsedItem = JSON.parse(parsedItem); // Second parse if needed
+            }
+  
+  
+            // Iterate through each parsed property and merge into the accumulator
+            Object.entries(parsedItem).forEach(([key, value]) => {
+  
+                // Normalize the key to lowercase
+                const normalizedKey = key.toLowerCase(); 
+  
+                // If the key already exists in the accumulator
+                if (acc[normalizedKey]) {
+                    acc[normalizedKey] = {
+                        value: value,  // Directly assign value (since we no longer use nested value objects)
+                        price: parsedItem.price || acc[normalizedKey].price, // If a price exists, use it
+                        changePrice: parsedItem.price ? true : false, // Set changePrice to true if price exists
+                        newPrice: parsedItem.newPrice || acc[normalizedKey].newPrice, // Keep existing newPrice if not provided
+                    };
+                } else {
+                    // Add the new key-value pair
+                    acc[normalizedKey] = {
+                        value: value,
+                        price: parsedItem.price || undefined, // Set price if available
+                        changePrice: parsedItem.price ? true : false, // If price exists, set changePrice to true
+                        newPrice: parsedItem.newPrice || undefined, // Set newPrice if available
+                    };
+                }
+            });
+        } catch (error) {
+            // Handle JSON parse errors
+            toast({
+                title: `Failed to parse JSON string: "${item}"`,
+                description: `${error}`,
+            });
+        }
+  
+        return acc;
+    }, {});
+  }
+  
+  
+
+
+
+
+  const PropertiesWidget = ({ product,productIndex }: { product: product,productIndex:number }) => {
     if (isReadOnly) {
       return (
         <div className='flex gap-1 p-1'>
-                        {product.selectedProperties?.map((property:any,index:number) => {
-                            return (
-                              <div key={index} className='flex gap-1'>
-                                <Badge variant={"outline"} className='py-1'>{JSON.parse(property).value}  +{ JSON.parse(property).price}Dzd</Badge>
-                          </div>
-                            )
-                        })}
+         {product.selectedProperties.map((item, productIndex) => {
+           let property = JSON.parse(item); // Parse the JSON string once
+           if (typeof property === "string") {
+             property = JSON.parse(property)
+           }
+           const value = Object.values(property)[0]
+  return (
+    <div key={productIndex} className="flex gap-1">
+      <Badge variant={"outline"} className="py-1">
+        {value}{" "}
+        {property.price && `+${property.price} Dzd`}
+      </Badge>
+    </div>
+  );
+})}
+
+          
+
                         </div>
       )
     } else {
-     // Flatten selectedProperties into a single object for easier lookups
-const selectedPropertiesObject = product.selectedProperties.reduce<Record<string, string>>((acc, item) => {
-  const [key, value] = item.split("_"); // Split item into key and value
-  acc[key] = value; // Add key-value pair to the accumulator object
-  return acc;
-}, {});
+      const selectedProperties = restructurePropertiesFromStringArray(product.selectedProperties);
 
 return (
-  <div className=''>
-    {product.productProperties.map((property, index) => {
-      const valuesList = property.values.split(","); // Split values into an array
-      return (
-        <div key={index} className='py-1 flex gap-1'>
-          <Badge> {property.label} </Badge>
-          <div className='flex gap-1'>
-          {valuesList.map((value, valueIndex) => (
-            <Button
-              key={valueIndex}
-              onClick={() => updatePropertiesSelection({key:property.label,productId:product.productId,newValue:value})}
-              variant={selectedPropertiesObject[property.label] === value ? "default" : "outline"}
-            >
-              {value}
-            </Button>
-          ))}
-          </div>
+  <div className="">
+  {product.productProperties.map((property, index) => {
+    const valuesList = property.values; // Values available for the property
+
+    return (
+      <div key={index} className="py-1 flex gap-1">
+        <Badge>{property.label}</Badge>
+        <div className="grid grid-cols-2 gap-1">
+          {valuesList.map((value, valueIndex) => {
+            // Check if the current value is selected for this property
+            const isSelected = selectedProperties[property.label.toLowerCase()]?.value === value.value;
+
+            return (
+              <Button
+                key={valueIndex}
+                onClick={() =>
+                  updatePropertiesSelection({
+                    index: productIndex,
+                    propertyIndex: index,
+                    key: property.label,
+                    productId: product.productId,
+                    newValue: value.value,
+                    newPriceChange: value.newPrice,
+                  })
+                }
+                variant={isSelected ? "default" : "outline"}
+              >
+                {value.value} {value.changePrice ? `+${value.newPrice} Dzd` : ""}
+              </Button>
+            );
+          })}
         </div>
-      );
-    })}
-  </div>
+      </div>
+    );
+  })}
+</div>
+
 );
+
+      
 
     }
   }
@@ -389,7 +523,7 @@ return (
                       </div>
                       {/* product properties */}
                       <div className='flex gap-1 p-1'>
-                        <PropertiesWidget product={product as any}/>
+                        <PropertiesWidget product={product as any} productIndex={index}/>
                       </div>
                     </div>
                   </div>

@@ -1,17 +1,21 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { 
   CheckCircle, 
   Clock, 
   XCircle, 
   ShieldCheck, 
-  ShieldX, 
-  ChevronLeft, 
-  ChevronRight,
+  ShieldX,
   ArrowUpRight,
   ArrowDownRight 
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import { 
   Tooltip,
   TooltipContent,
@@ -48,7 +52,6 @@ interface FormDataInterface {
 
 /**
  * Individual stat card component that displays a single metric
- * @param props StatCardProps containing the card's data and styling information
  */
 const InformationTag = ({ 
   title, 
@@ -59,9 +62,6 @@ const InformationTag = ({
   description,
   trend 
 }: StatCardProps) => {
-  // Animation visibility state
-  const [isVisible, setIsVisible] = useState(false);
-  
   // Calculate percentage of total orders
   const percentage = totalOrders > 0 ? Math.round((value * 100) / totalOrders) : 0;
   
@@ -99,34 +99,14 @@ const InformationTag = ({
     }
   };
 
-  // Extract color name from the color prop
   const colorName = color.split('-')[1] as keyof typeof colorClasses;
   const colorClass = colorClasses[colorName];
-
-  // Initialize animation on mount
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
 
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Card className={`
-            p-6 
-            relative 
-            overflow-hidden 
-            group 
-            hover:shadow-lg 
-            transition-all 
-            duration-300 
-            min-w-[300px] 
-            shadow-none
-            border
-            transform hover:-translate-y-1
-            snap-center
-            ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
-          `}>
+          <Card className="p-6 relative overflow-hidden group hover:shadow-lg transition-all duration-300 shadow-none border transform hover:-translate-y-1 h-full">
             {/* Header section */}
             <div className="flex justify-between items-start">
               <div className="space-y-2">
@@ -170,14 +150,8 @@ const InformationTag = ({
               </div>
               <div className="h-2 rounded-full overflow-hidden bg-gray-100/10">
                 <div 
-                  className={`
-                    h-full 
-                    ${colorClass.bg}
-                    transition-all 
-                    duration-1000 
-                    ease-out
-                  `}
-                  style={{ width: `${isVisible ? percentage : 0}%` }}
+                  className={`h-full ${colorClass.bg} transition-all duration-1000 ease-out`}
+                  style={{ width: `${percentage}%` }}
                   role="progressbar"
                   aria-valuenow={percentage}
                   aria-valuemin={0}
@@ -200,15 +174,8 @@ const InformationTag = ({
 
 /**
  * Main dashboard component that displays order statistics
- * @param props Object containing form data with order statistics
  */
 export default function OrdersDashboard({ formData }: { formData: FormDataInterface }) {
-  // Refs and state for scroll functionality
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
-
-  // Stats configuration with mock trend data
   const stats = [
     {
       title: "Completed Orders",
@@ -252,43 +219,6 @@ export default function OrdersDashboard({ formData }: { formData: FormDataInterf
     }
   ];
 
-  /**
-   * Updates the visibility state of scroll buttons based on scroll position
-   */
-  const checkScrollButtons = () => {
-    if (scrollRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-      setCanScrollLeft(scrollLeft > 0);
-      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
-    }
-  };
-
-  // Initialize scroll button visibility and handle window resizing
-  useEffect(() => {
-    checkScrollButtons();
-    window.addEventListener('resize', checkScrollButtons);
-    return () => window.removeEventListener('resize', checkScrollButtons);
-  }, []);
-
-  /**
-   * Handles horizontal scrolling of the stats cards
-   * @param direction 'left' or 'right' scroll direction
-   */
-  const scroll = (direction: 'left' | 'right') => {
-    if (scrollRef.current) {
-      const scrollAmount = 300;
-      const targetScroll = scrollRef.current.scrollLeft + 
-        (direction === 'left' ? -scrollAmount : scrollAmount);
-      
-      scrollRef.current.scrollTo({
-        left: targetScroll,
-        behavior: 'smooth'
-      });
-
-      setTimeout(checkScrollButtons, 300);
-    }
-  };
-
   // Calculate total percentage complete
   const totalComplete = Math.round(
     (formData.completedOrders / formData.totalItem) * 100
@@ -311,45 +241,27 @@ export default function OrdersDashboard({ formData }: { formData: FormDataInterf
       </div>
 
       {/* Stats Cards Carousel */}
-      <div className="relative" role="region" aria-label="Order Statistics">
-        <div 
-          ref={scrollRef}
-          className="flex gap-4 overflow-x-hidden scroll-smooth pb-4 snap-x snap-mandatory px-6 py-4" 
-          onScroll={checkScrollButtons}
+      <div className="px-6">
+        <Carousel
+          opts={{
+            align: "start",
+            loop: true
+          }}
+          className="w-full"
         >
-          {stats.map((stat) => (
-            <InformationTag
-              key={stat.title}
-              {...stat}
-              totalOrders={formData.totalItem}
-            />
-          ))}
-        </div>
-        
-        {/* Scroll Controls */}
-        {canScrollLeft && (
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 hover:bg-gray-100/10 shadow-lg"
-            onClick={() => scroll('left')}
-            aria-label="Scroll left"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-        )}
-        
-        {canScrollRight && (
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 hover:bg-gray-100/10 shadow-lg"
-            onClick={() => scroll('right')}
-            aria-label="Scroll right"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        )}
+          <CarouselContent className="-ml-2 md:-ml-4">
+            {stats.map((stat, index) => (
+              <CarouselItem key={stat.title} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
+                <InformationTag
+                  {...stat}
+                  totalOrders={formData.totalItem}
+                />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+        </Carousel>
       </div>
 
       {/* Summary Footer */}

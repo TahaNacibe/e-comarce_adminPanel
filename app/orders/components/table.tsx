@@ -338,7 +338,7 @@ export default function OrdersTable({ ordersList,isDataLoading,deleteAction,upda
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Button
-                        onClick={() => updateVerification(order.id)}
+                        onClick={() => updateVerification(order.id,order)}
                         variant={"outline"}
                         className={`${order.verified ? " text-red-700 border-red-200/10" : " text-blue-700 border-blue-200/10"} flex gap-1 w-full`}
                       >

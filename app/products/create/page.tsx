@@ -214,9 +214,9 @@ import { useRouter } from "next/navigation";
             <CardTitle>Create New Product</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="flex gap-8">
+            <form onSubmit={handleSubmit} className="md:flex gap-8">
               {/* Left Column - Images */}
-              <div className="w-1/2">
+              <div className="md:w-1/2">
                 <ImageUploadSection
                   bigImage={bigImage}
                   smallImages={smallImages}
@@ -232,7 +232,7 @@ import { useRouter } from "next/navigation";
               </div>
   
               {/* Right Column - Product Details */}
-              <div className="w-1/2 space-y-8">
+              <div className="md:w-1/2 space-y-8">
                 <ProductDetails
                   productTitle={productTitle}
                   productDescription={productDescription}

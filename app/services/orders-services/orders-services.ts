@@ -80,19 +80,19 @@ export default class OrderServices {
 
             return {success:false, message:"Couldn't delete items"}
         } catch (error: any) {
-            console.log(error)
             return {success:false, message:error.message}
         }
     }
 
 
     //* update the verification state for the order
-    updateVerificationStateForOrder = async ({ orderId }: { orderId: string}) => {
+    updateVerificationStateForOrder = async ({ orderId,updateCount }: { orderId: string,updateCount:{productId:string,quantity:number}[]}) => {
         try {
             //* check if prams are served
             if (!orderId) return { success: false, message: "Missing Required Field id" }
             const response = await fetch(`/api/orders?orderId=${orderId}&updateVerification=${true}`, {
                 method: "PUT",
+                body:JSON.stringify(updateCount)
             })
 
             if (response.ok) {
@@ -185,7 +185,6 @@ const formattedData = data.orders.map((order: Orders) => {
                 return {success:true, message:`Download orders.${fileExtension}...`,data:response.url}
             }
         } catch (error: any) {
-            console.log(error.message)
             return {success:false, message:`Couldn't download orders.${fileExtension}!...`,data:error.message}
         }
     }

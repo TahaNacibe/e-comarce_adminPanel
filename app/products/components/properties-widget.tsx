@@ -243,7 +243,7 @@ export default function PropertiesWidget({
             {currentProperty && (
                 <div className="space-y-4 border p-4 rounded-md">
                     <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-4">
+                        <div className="flex flex-col md:flex-row md:items-center gap-4">
                             <div className="w-1/3">
                                 <Input
                                     type="text"
@@ -291,7 +291,7 @@ export default function PropertiesWidget({
                     </div>
 
                     {/* Value Addition Form */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col md:flex-row md:items-center gap-4">
                         <Input
                             type="text"
                             value={newValue}

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { redirect, usePathname, useRouter } from "next/navigation"
 import { ReactNode, useEffect, useState } from "react"
 import { ChartColumn, DoorOpen, LogOut, Menu, NotebookText, Package, Tags, Wrench, X } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -21,7 +21,6 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
 
     // Get the current user session on page load
     const { data: session } = useSession()
-    console.log("session : ",session)
 
     // Handle window resize
     useEffect(() => {
@@ -130,8 +129,12 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
         )
     }
 
+    async function handleSignOut() {
+        await signOut({ callbackUrl: "/" })
+    }
+
     return (
-        <div className="flex h-screen overflow-hidden ">
+        <div className="flex h-screen overflow-hidden">
             <AnimatePresence>
                 {/* Mobile backdrop */}
                 {isMobileMenuOpen && (
@@ -146,7 +149,7 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
 
                 {/* side bar */}
                 <motion.div 
-                    className={`fixed lg:relative h-screen overflow-x-hidden z-40 
+                    className={`fixed lg:relative h-screen overflow-x-hidden z-40 bg-background
                         ${isMobileMenuOpen ? 'block' : 'hidden'} lg:block`}
                     initial={{ width: "56px", x: -200 }}
                     animate={{ 
@@ -203,12 +206,18 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
                                 })}
 
                                 {/* sign out */}
-                                <Button
-                                    onClick={() => signOut()}
-                                    variant={"outline"} className="text-red-900">
+                                <div
+                                    onClick={() => handleSignOut()}
+                                    className="text-red-900 flex hover:bg-blue-200/10 px-4 py-2 gap-2 cursor-pointer">
                                     <LogOut />
-                                    <h1>LogOut</h1>
-                                </Button>
+                                    {!isSideBarCollapsed && (
+                                                    <span className={`line-clamp-1 whitespace-nowrap`}>
+                                                        <h1 className="text-sm font-medium">
+                                                            Sign out
+                                                        </h1>
+                                                    </span>
+                                                )}
+                                </div>
                             </nav>
                         </div>
                     </aside>
@@ -216,11 +225,11 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
             </AnimatePresence>
 
             {/* main content */}
-            <main className="flex-1 overflow-y-auto border-l relative">
+            <main className="flex-1 overflow-y-auto border-l">
                 {/* Mobile menu toggle button */}
                 <button 
                     onClick={() => setMobileMenuOpen(!isMobileMenuOpen)}
-                    className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white shadow-sm"
+                    className="lg:hidden fixed top-4 right-4 z-50 p-2 rounded-lg bg-background shadow-sm"
                 >
                     {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
