@@ -7,7 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import {
   ChevronDown,
-  ExternalLink,
   File,
   Loader2,
   Search,
@@ -15,8 +14,7 @@ import {
   Download,
   Filter,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DatePicker } from "./components/date_picker";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -30,7 +28,6 @@ import { Input } from "@/components/ui/input";
 import OrdersTable from "./components/table";
 import PaginationWidget from "../components/pagination_widget";
 import { useDebounce } from "use-debounce"; // Import use-debounce
-import { error } from "console";
 
 export default function OrdersPage() {
   //* Data state variables
@@ -96,7 +93,7 @@ export default function OrdersPage() {
   }) {
     if (!session) return;
 
-    if (session.user.role !== "ADMIN" && session.user.role !== "SUB_ADMIN") {
+    if (session.user.role !== "ADMIN" && session.user.role !== "SUB_ADMIN" && session.user.role !== "DEVELOPER") {
       router.push("/unauthorized-access");
       return;
     }

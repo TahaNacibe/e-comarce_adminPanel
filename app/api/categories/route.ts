@@ -38,7 +38,8 @@ const POST = async (req: NextRequest) => {
             data: {
                 name:title,
                 description,
-                parentId
+                parentId,
+                isOnDisplay: true,
             }
         })
 
@@ -80,7 +81,7 @@ const DELETE = async (req:NextRequest) => {
         if (!forDeleteCategory) return NextResponse.json({ message: `no category with id ${categoryId} found` }, { status: 404 })
         
         // delete the category
-        const deletedCategory = await prisma.tags.delete({
+        await prisma.tags.delete({
             where: {
                 id:categoryId
             }
@@ -94,10 +95,27 @@ const DELETE = async (req:NextRequest) => {
 }
 
 const PUT = async (req: NextRequest) => {
-    try {
-        const { name, description, parentId, categoryIdForEdit } = await req.json()
-        console.log(name,description,parentId,categoryIdForEdit)
+    try {        
+        const { searchParams } = new URL(req.url)
+        const categoryId = searchParams.get("categoryId")
 
+        if (categoryId) {
+            const targetCategory = await prisma.tags.findUnique({
+                where:{id:categoryId}
+            })
+            if (!targetCategory) return NextResponse.json({ message: "Couldn't find category to edit" }, { status: 404 })
+            
+            await prisma.tags.update({
+                where: { id: categoryId },
+                data: {
+                    isOnDisplay: !targetCategory.isOnDisplay
+                }
+            })
+
+            return NextResponse.json({ message: "Category updated!" }, { status: 200 })
+        }
+
+        const { name, description, parentId, categoryIdForEdit } = await req.json()
         // check the required felids
         if (!name || !description) return NextResponse.json({ message: "Title and Description are required for the category" }, { status: 400 })
         
@@ -125,6 +143,7 @@ const PUT = async (req: NextRequest) => {
 
         return NextResponse.json({message:"Category updated successfully",updatedCategory},{status:200})
     } catch (error) {
+        console.log(error)
         return NextResponse.json({message:"Failed to update category",error},{status:500})
     }
 }

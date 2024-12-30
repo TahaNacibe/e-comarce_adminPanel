@@ -42,7 +42,7 @@ const NotFoundPage: React.FC = () => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex flex-col items-center justify-center px-6 py-12"
+      className="min-h-screen flex flex-col items-center justify-center px-6 py-12"
     >
       {/* Illustration */}
       <motion.div
@@ -68,7 +68,7 @@ const NotFoundPage: React.FC = () => {
       >
         <motion.h1
           variants={itemVariants}
-          className="text-4xl font-bold text-gray-900 mb-4"
+          className="text-4xl font-bold  mb-4"
         >
           Oops! Page Not Found
         </motion.h1>
@@ -77,7 +77,7 @@ const NotFoundPage: React.FC = () => {
           variants={itemVariants}
           className="text-gray-600 mb-8 text-lg"
         >
-          The page you're looking for doesn't exist or has been moved to a new address.
+          The page you&apos;re looking for doesn&apos;t exist or has been moved to a new address.
         </motion.p>
 
         {/* Action Buttons */}

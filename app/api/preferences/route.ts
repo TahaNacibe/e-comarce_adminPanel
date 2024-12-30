@@ -1,6 +1,5 @@
 import prisma from "@/utils/connect";
 import { shopPreferences } from "@prisma/client";
-import Email from "next-auth/providers/email";
 import { NextRequest, NextResponse } from "next/server";
 
 
@@ -79,10 +78,10 @@ const PUT = async (req: NextRequest) => {
 const POST = async (req: NextRequest) => {
     try {
         const { searchParams } = new URL(req.url);
-        const newName = searchParams.get("newName");
         const newIcon = searchParams.get("newIcon");
+        const shopDetails = await req.json()
 
-        if (!newName && !newIcon) {
+        if (!shopDetails.shopName && !newIcon) {
             return NextResponse.json(
                 { message: "Require at least one parameter" },
                 { status: 400 }
@@ -93,13 +92,14 @@ const POST = async (req: NextRequest) => {
         const shop = await prisma.shopPreferences.findFirst();
 
         if (shop) {
+            const { name, image, ...rest } = shopDetails
             // Shop exists, update it
             const updatedShop = await prisma.shopPreferences.update({
                 where: {
                     shopId: "0"
                 },
                 data: {
-                    ...(newName && { shopName: newName }),
+                    ...({...rest, shopName:name}),
                     ...(newIcon && { shopIcon: newIcon }),
                 },
             });
@@ -112,18 +112,26 @@ const POST = async (req: NextRequest) => {
             // No shop exists, create a new one
             const shop: shopPreferences = {
                 shopId: "0",
-                shopName: newName || "Default Name", 
-                shopIcon: newIcon || "default-icon.png", }
+                shopName: shopDetails.shopName || "Default Name",
+                shopIcon: newIcon || "default-icon.png",
+                email: "",
+                phoneNumber: "",
+                address: "",
+                TikTokLink: null,
+                facebookLink: null,
+                instagramLink: null
+            }
             const newShop = await prisma.shopPreferences.create({
                 data: shop,
             });
 
             return NextResponse.json(
                 { message: "Shop created", shop: newShop },
-                { status: 201 }
+                { status: 200 }
             );
         }
-    } catch (error:any) {
+    } catch (error: any) {
+        console.log(error.message)
         return NextResponse.json(
             { message: "Error handling shop data", error: error.message },
             { status: 500 }

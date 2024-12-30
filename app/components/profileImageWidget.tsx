@@ -1,7 +1,7 @@
 import Image from "next/image"
 
 
-export default function ProfileImageAndPlaceHolder({ userName, userImage }: { userName: String, userImage?: String }) {
+export default function ProfileImageAndPlaceHolder({ userName, userImage }: { userName: string, userImage?: string }) {
     //* consts
     const IMAGE_HEIGHT = 38
     const IMAGE_WIDTH = 38

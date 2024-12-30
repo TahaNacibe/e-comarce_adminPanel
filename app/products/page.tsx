@@ -28,6 +28,8 @@ import PaginationWidget from '../components/pagination_widget';
 import { ConfirmActionDialog } from '../components/confirmActionDialog';
 import ProductsServices from '../services/products/productsServices';
 import { useToast } from '@/hooks/use-toast';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 // consts for easy access
 const IMAGE_WIDTH = 300;
@@ -49,7 +51,7 @@ const ProductImage = ({ url, alt }: { url: string, alt: string }) => {
       alt={alt}
       width={IMAGE_WIDTH}
       height={IMAGE_HEIGHT}
-      onError={(e) => setUrl("/image_placeholder.jpg")}
+      onError={(_) => setUrl("/image_placeholder.jpg")}
       className="object-cover h-full w-full"
     />
   </div>
@@ -242,29 +244,40 @@ const ProductsPage = () => {
   const productsServices = new ProductsServices();
 
       // hooks
-      const { toast } = useToast()
+  const { toast } = useToast()
+  const { data: session } = useSession()
+  const router = useRouter()
     
-  const quickLoadAndReloadForProducts = () => {
-    productsServices.loadProducts({
-      activePage: 0,
-      setProducts,
-      setFilteredProducts,
-      setTotalProductsCount,
-      productsAreInDescOrder,
-      setPagesCount,
-      setIsLoading
-    }).then((response) => {
-      if (!isToasted) {
-        handleResponseFromBackEnd(toast, response)
-        setIsToasted(true)
-      }
-    });
+  const quickLoadAndReloadForProducts = async () => {
+    if (session) {
+      
+       //* check if user have access before loading data
+       if (session.user.role !== "ADMIN" && session.user.role !== "SUB_ADMIN" && session.user.role !== "DEVELOPER") {
+        router.push("/unauthorized-access")
+        return;
+    }
+
+      const response = await productsServices.loadProducts({
+        activePage: 0,
+        setProducts,
+        setFilteredProducts,
+        setTotalProductsCount,
+        productsAreInDescOrder,
+        setPagesCount,
+        setIsLoading
+      })
+      
+        if (!isToasted) {
+          handleResponseFromBackEnd(toast, response)
+          setIsToasted(true)
+        }
+    }
   }
 
   useEffect(() => {
     // initial load for products list
     quickLoadAndReloadForProducts()
-  }, []);
+  }, [session]);
     
     
   // Handle the search input change and update results

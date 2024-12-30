@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { redirect, usePathname } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { ReactNode, useEffect, useState } from "react"
 import { ChartColumn, DoorOpen, Menu, NotebookText, Package, Tags, Wrench, X } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -164,7 +164,7 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
                                     const isActive = pathname === tab.link
                                     return (
                                         <Link
-                                            key={index}
+                                            key={tab.link + index}
                                             href={tab.link}
                                             onClick={() => onPageChange()}
                                             className={`flex items-center gap-3 p-3 transition-colors 

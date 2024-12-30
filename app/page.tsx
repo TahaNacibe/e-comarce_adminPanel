@@ -1,6 +1,7 @@
 "use client"
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
+import AdminPanel from "./admin/page";
 
 export default function Home() {
 
@@ -22,17 +23,13 @@ export default function Home() {
     if (!checkIfUserAuthorized()) {
       console.log("session in main page is: ",session)
       redirect("/unauthorized-access")
-    } else {
-      redirect("/admin")
     }
   }
 
 
   return (
     <div className="">
-      <h1>
-        Page Content
-      </h1>
+      <AdminPanel />
     </div>
   );
 }

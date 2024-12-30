@@ -12,10 +12,16 @@ const GET = async () => {
         })
 
         if (!settings) {
-            settings = {
+            settings  = {
                 shopId: "0",
                 shopName:  "Default Name", 
-                shopIcon:  "image_placeholder.jpg", }
+                shopIcon: "image_placeholder.jpg",
+                TikTokLink: null,
+                facebookLink: null,
+                instagramLink: null,
+                phoneNumber: "",
+                email: "",
+                address:"" }
         }
         return NextResponse.json({message:"Loaded",settings},{status:200})
     } catch (error) {

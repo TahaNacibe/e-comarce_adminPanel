@@ -1,22 +1,14 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { Tags, MoreVertical, Search } from 'lucide-react';
+import { Tags, Search } from 'lucide-react';
 import { Category } from '@/app/products/types/pageTypes';
 import CategoriesServices from '@/app/services/categories/categories_services';
 import { useEffect, useState } from 'react';
-import { CategorySelector } from '@/app/products/components/category-selector';
 import { Popover, PopoverTrigger, PopoverContent } from '@radix-ui/react-popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 
@@ -175,14 +167,14 @@ const CategorySheet: React.FC<CategorySheetProps> = ({
                       <ScrollArea className="max-h-[200px]">
 
               <CommandGroup className='rounded-lg'>
-                        {categoriesList.map((category) => {
+                        {categoriesList.map((category,index) => {
                            //* don't show the category in the list so no cat can be a parent to it self
                       if (category.name === formData.categoryTitle) return;
 
                       //* return the list
                   return (
                     <CommandItem
-                      key={category.id}
+                      key={category.id + index}
                       onSelect={() => {
                         setFormData(prev => ({ ...prev, selectedCategoryParent: category }))
                         setIsOpen(false);

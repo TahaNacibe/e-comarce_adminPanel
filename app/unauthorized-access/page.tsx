@@ -49,7 +49,7 @@ const UnauthorizedPage: React.FC = () => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-6 relative overflow-hidden"
+      className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden"
     >
       {/* Animated background decorations */}
       <motion.div
@@ -66,7 +66,7 @@ const UnauthorizedPage: React.FC = () => {
       />
       
       <motion.div variants={fadeIn}>
-        <Card className="max-w-lg w-full bg-white/80 backdrop-blur-sm rounded-xl shadow-xl relative">
+        <Card className="max-w-lg w-full  backdrop-blur-sm rounded-xl shadow-xl relative">
           <CardContent className="p-8">
             {/* Animated top line */}
             <motion.div
@@ -95,7 +95,7 @@ const UnauthorizedPage: React.FC = () => {
             <motion.div variants={fadeIn}>
               <motion.h1
                 variants={fadeIn}
-                className="text-4xl font-bold text-gray-900 mb-3 text-center"
+                className="text-4xl font-bold  mb-3 text-center"
               >
                 Access Denied
               </motion.h1>
@@ -104,7 +104,7 @@ const UnauthorizedPage: React.FC = () => {
                 variants={fadeIn}
                 className="text-gray-600 text-lg mb-4 text-center"
               >
-                You don't have permission to access this page.
+                You don&apos;t have permission to access this page.
               </motion.p>
               
               <motion.p
@@ -121,7 +121,7 @@ const UnauthorizedPage: React.FC = () => {
                 onClick={handleGoBack}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
-                className="flex items-center justify-center w-full gap-2 bg-white hover:bg-gray-50 
+                className="flex items-center justify-center w-full gap-2 bg-white/80 hover:bg-gray-50 
                          text-gray-700 font-semibold py-4 px-6 rounded-xl border border-gray-200 
                          shadow-sm transition-all duration-200 hover:shadow-md group"
               >

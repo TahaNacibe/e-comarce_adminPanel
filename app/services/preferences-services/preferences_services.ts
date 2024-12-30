@@ -14,13 +14,12 @@ export default class PreferencesServices {
                 method:"GET"
             })
 
-            const data = await response.json()
             if (response.ok) {
-                console.log("from service it's like that : ",data)
+                const data = await response.json()
                 return {success:true, message:"Users Load", data:data.users}
             }
 
-            return {success:false, message:"Users Load Failed", data:data.message}
+            return {success:false, message:"Users Load Failed", data:response.status}
         } catch (error:any) {
             return {success:false, message:"Error getting the users", data:error.message}
         }
@@ -34,12 +33,11 @@ export default class PreferencesServices {
                 method: "PUT"
             })
 
-            const data = await response.json()
             if (response.ok) {
-                console.log(data)
+                const data = await response.json()
                 return {success:true, message:`${data.updatedUser.name} was ${isSubAdmin? "removed as" : "added as"} sub admin`, data:data.updatedUser}
             }
-            return {success:false, message:"Users update failed", data:data.message}
+            return {success:false, message:"Users update failed", data:response.status}
         } catch (error:any) {
             return {success:false, message:"Error while updating user", data:error.message}
         }
@@ -61,22 +59,22 @@ export default class PreferencesServices {
     }
 
     //* update the shop name 
-    updateShopDetails = async ({newName,newIcon}:{newName: string,newIcon:string}) => {
+    updateShopDetails = async ({shopDetails,newIcon}:{shopDetails: any,newIcon:string}) => {
         try {
             const searchParams = new URLSearchParams()
             if(newIcon) searchParams.append("newIcon",newIcon)
-            if(newName) searchParams.append("newName",newName)
-            if (!newName && !newIcon) return { success: false, message: "Can't be empty", data: "Require at last one info to update" }
+            if (!newIcon) return { success: false, message: "Can't be empty", data: "Require at last one info to update" }
             const response = await fetch(`/api/preferences?${searchParams}`, {
-                method:"POST"
+                method: "POST",
+                body:JSON.stringify(shopDetails)
             })
-
-            const data = await response.json()
+            
             if (response.ok) {
-                return { success: true, message: "Updated!", data: `Your shop now called ${newName}` }
+                const data = await response.json()
+                return { success: true, message: "Updated!", data: `Your shop now called ${data.newShop}` }
             }
 
-            return { success: false, message: "Failed to update name!", data: data.message }
+            return { success: false, message: "Failed to update name!", data: "Something went wrong!"}
         } catch (error:any) {
             return { success: false, message: "Error updating shop name!", data: error.message }
         }
@@ -85,15 +83,20 @@ export default class PreferencesServices {
 
     //* load shop details
     loadShopDetailsInStart = async () => {
-        const response = await fetch('/api/preferences/settings', {
-            method: "GET"
-        })
-
-        const data = await response.json()
-        if (response.status === 500) {
-            return {success:false,message:"Error",data:data.error}
+        try {
+            const response = await fetch('/api/preferences/settings', {
+                method: "GET"
+            })
+    
+            if (response.status === 200) {
+                const data = await response.json()
+                return {success:true,message:"loaded",data:data.settings}
+            }
+            return {success:false,message:"Failed to load shop details",data:response.status}
+        } catch (error:any) {
+            return {success:false,message:"Error",data:error.message}
         }
-        return {success:true,message:"loaded",data:data.settings}
+        
     }
 
 }

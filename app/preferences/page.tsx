@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react';
-import { Search, Moon, Sun, Upload, Users, PlusCircle, X, UserRoundPlus, UserRoundMinus, Pencil, Save } from 'lucide-react';
+import { Moon, Sun, Upload, PlusCircle, UserRoundPlus, UserRoundMinus, Pencil, Save } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -30,27 +30,40 @@ import { ConfirmActionDialog } from '../components/confirmActionDialog';
 import { useToast } from '@/hooks/use-toast';
 import { User } from '@prisma/client';
 import { useTheme } from "@/app/providers/theme-provider"
+import SettingsInput from './components/settings_input';
 
 const PreferencesPage = () => {
   // Shop Identity States
   const [shopDetails, setShopDetails] = useState({
     name: '',
     image: '',
+    TikTokLink:'',
+    facebookLink : "",
+    instagramLink : "",
+    phoneNumber: "",
+    email: "",
+    address: "",
     isEditing: false
   });
   const [tempShopDetails, setTempShopDetails] = useState({
     name: '',
-    image: ''
+    image: '',
+    TikTokLink:'',
+    facebookLink : "",
+    instagramLink : "",
+    phoneNumber: "",
+    email: "",
+    address: "",
   });
   const [newImageFile, setNewImageFile] = useState<File | null>(null);
 
   // Other States
     const [isAddingUser, setIsAddingUser] = useState(false);
     const [isDarkMode, setIsDarkMode] = useState(false);
-  const [allUsers, setAllUsers] = useState<any[]>([]);
-  const [userSearchInput, setUserSearchInput] = useState<string | null>(null);
-  const [loadingUsers, setLoadingUsers] = useState(false);
-  const [subAdmins, setSubAdmins] = useState<any[]>([]);
+    const [allUsers, setAllUsers] = useState<any[]>([]);
+    const [userSearchInput, setUserSearchInput] = useState<string | null>(null);
+    const [loadingUsers, setLoadingUsers] = useState(false);
+    const [subAdmins, setSubAdmins] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     
   
@@ -92,8 +105,14 @@ const PreferencesPage = () => {
   // Shop Identity Functions
   const handleEditClick = () => {
     setTempShopDetails({
-      name: shopDetails.name,
-      image: shopDetails.image
+    name: shopDetails.name,
+    image: shopDetails.image,
+    TikTokLink:shopDetails.TikTokLink,
+    facebookLink : shopDetails.facebookLink,
+    instagramLink : shopDetails.instagramLink,
+    phoneNumber: shopDetails.phoneNumber,
+    email: shopDetails.email,
+    address: shopDetails.address,
     });
     setShopDetails(prev => ({ ...prev, isEditing: true }));
   };
@@ -117,6 +136,11 @@ const PreferencesPage = () => {
   };
 
   const handleSaveShopDetails = async () => {
+    setShopDetails(prev => ({ ...prev, isEditing: false }))
+    toast({
+      title: "updating...",
+      description: "please wait"
+    })
     setIsLoading(true);
     try {
       let imageUrl = shopDetails.image;
@@ -128,12 +152,18 @@ const PreferencesPage = () => {
         }
       }
 
-      const response = await preferencesServices.updateShopDetails({newName:tempShopDetails.name, newIcon:imageUrl});
-      
+      const response = await preferencesServices.updateShopDetails({shopDetails:tempShopDetails, newIcon:imageUrl});
+      console.log(response)
       if (response.success) {
         setShopDetails({
           name: tempShopDetails.name,
           image: imageUrl,
+          TikTokLink:tempShopDetails.TikTokLink,
+          facebookLink : tempShopDetails.facebookLink,
+          instagramLink : tempShopDetails.instagramLink,
+          phoneNumber: tempShopDetails.phoneNumber,
+          email: tempShopDetails.email,
+          address: tempShopDetails.address,
           isEditing: false
         });
         toast({
@@ -213,19 +243,19 @@ const PreferencesPage = () => {
         const response = await preferencesServices.loadShopDetailsInStart()
         if (response.success) {
             setShopDetails({
-                image: response.data.shopIcon,
-                name: response.data.shopName,
+              image: response.data.shopIcon,
+              name: response.data.shopName,
+              TikTokLink:response.data.TikTokLink,
+              facebookLink : response.data.facebookLink,
+              instagramLink : response.data.instagramLink,
+              phoneNumber: response.data.phoneNumber,
+              email: response.data.email,
+              address: response.data.address,
                 isEditing: false
             })
         }
     }
 
-    
-    // Apply theme effect
-//   useEffect(() => {
-//     const root = window.document.documentElement;
-//     root.classList.toggle('dark', isDarkMode);
-//   }, [isDarkMode]);
 
   useEffect(() => {
       loadAuthUsers();
@@ -312,18 +342,65 @@ const PreferencesPage = () => {
                     />
                   )}
                 </div>
-                <div className="flex-1 space-y-2">
-                  <Label htmlFor="shopName">Shop Name</Label>
-                  <Input
-                    id="shopName"
-                    value={shopDetails.isEditing ? tempShopDetails.name : shopDetails.name}
-                    onChange={(e) => setTempShopDetails(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Enter your shop name"
-                    className="max-w-md"
-                    disabled={!shopDetails.isEditing}
-                  />
+                {/* main settings */}
+                <div className='grid grid-cols-2 gap-4'>
+                {/* shop name */}
+                <SettingsInput
+                  isEditing={shopDetails.isEditing}
+                  tempValue={tempShopDetails.name}
+                  detailsValue={shopDetails.name} label={'Shop Name'} placeHolder={'Enter your shop name'}
+                  setTempShopDetails={(e: string) => setTempShopDetails(prev => ({ ...prev, name: e }))} />
+                {/* phone number */}
+                <SettingsInput
+                  isEditing={shopDetails.isEditing}
+                  tempValue={tempShopDetails.phoneNumber}
+                  detailsValue={shopDetails.phoneNumber} label={'Phone number'} placeHolder={'Enter the shop phone number'}
+                  setTempShopDetails={(e: string) => setTempShopDetails(prev => ({ ...prev, phoneNumber: e }))} />
+                {/* address */}
+                <SettingsInput
+                  isEditing={shopDetails.isEditing}
+                  tempValue={tempShopDetails.address}
+                  detailsValue={shopDetails.address} label={'Shop Address'} placeHolder={'Enter your shop Address'}
+                  setTempShopDetails={(e: string) => setTempShopDetails(prev => ({ ...prev, address: e }))} />
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* social media card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                Social Media info
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+            <div className='grid grid-cols-2 gap-4'>
+                {/* Email address */}
+                <SettingsInput
+                  isEditing={shopDetails.isEditing}
+                  tempValue={tempShopDetails.email}
+                  detailsValue={shopDetails.email} label={'Shop Email address'} placeHolder={'Enter your shop Email address'}
+                  setTempShopDetails={(e: string) => setTempShopDetails(prev => ({ ...prev, email: e }))} />
+                {/* facebook */}
+                <SettingsInput
+                  isEditing={shopDetails.isEditing}
+                  tempValue={tempShopDetails.facebookLink}
+                  detailsValue={shopDetails.facebookLink} label={'Facebook Page'} placeHolder={'Enter the shop Facebook link'}
+                  setTempShopDetails={(e: string) => setTempShopDetails(prev => ({ ...prev, phoneNumber: e }))} />
+                {/* Instagram */}
+                <SettingsInput
+                  isEditing={shopDetails.isEditing}
+                  tempValue={tempShopDetails.instagramLink}
+                  detailsValue={shopDetails.instagramLink} label={'Shop Instagram Page'} placeHolder={'Enter your shop Instagram page'}
+                  setTempShopDetails={(e: string) => setTempShopDetails(prev => ({ ...prev, instagramLink: e }))} />
+                {/* Tik Tok */}
+                <SettingsInput
+                  isEditing={shopDetails.isEditing}
+                  tempValue={tempShopDetails.TikTokLink}
+                  detailsValue={shopDetails.TikTokLink} label={'Shop TikTok Page'} placeHolder={'Enter your shop TikTok page'}
+                  setTempShopDetails={(e: string) => setTempShopDetails(prev => ({ ...prev, TikTokLink: e }))} />
+                </div>
             </CardContent>
           </Card>
 
@@ -352,7 +429,7 @@ const PreferencesPage = () => {
                   </DialogHeader>
                                   <>
                                       <Input value={userSearchInput ?? ""} onChange={(e) => handleUserSearch(e.target.value)} />
-                                      <Badge className='w-fit' variant={"outline"}> Users "{userSearchInput}" </Badge>
+                                      <Badge className='w-fit' variant={"outline"}> Users &apos;{userSearchInput}&apos; </Badge>
                                      
                                               <Table>
                 <TableHeader>

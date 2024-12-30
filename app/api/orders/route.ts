@@ -188,12 +188,11 @@ const DELETE = async (req: NextRequest) => {
         }
   
         // Delete the target order
-        const deletedItem = await prisma.orders.delete({
+        await prisma.orders.delete({
           where: { id: orderId },
         });
   
             // Return success message
-            console.log("-----------------> 1")
         return NextResponse.json({ message: "Order Deleted!" }, { status: 200 });
       }
   
@@ -250,7 +249,7 @@ const PUT = async (req: NextRequest) => {
             
             if(!item) return NextResponse.json({message:"No Order with that id"},{status:404})
 
-            const updatedOrder = await prisma.orders.update({
+            await prisma.orders.update({
                 where: {
                     id:orderId
                 },

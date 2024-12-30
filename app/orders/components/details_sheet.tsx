@@ -11,9 +11,7 @@ import {
 } from "@/components/ui/select";
 import {
   Sheet,
-  SheetClose,
   SheetContent,
-  SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetTitle,
@@ -168,7 +166,7 @@ const OrderDetailsAndEditSheet = ({ order,updateOrderDetails }: { order: Orders,
                         {product.selectedProperties?.map((property:any,index:number) => {
                             return (
                               <div key={index} className='flex gap-1'>
-                            <Badge variant={"outline"} className='py-1'>{property.replace("_"," : ")}</Badge>
+                                <Badge variant={"outline"} className='py-1'>{JSON.parse(property).value}  +{ JSON.parse(property).price}Dzd</Badge>
                           </div>
                             )
                         })}
@@ -391,7 +389,7 @@ return (
                       </div>
                       {/* product properties */}
                       <div className='flex gap-1 p-1'>
-                        <PropertiesWidget product={product}/>
+                        <PropertiesWidget product={product as any}/>
                       </div>
                     </div>
                   </div>

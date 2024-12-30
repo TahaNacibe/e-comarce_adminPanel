@@ -29,7 +29,7 @@ export default class CategoriesServices {
     createNewCategoryInDb = async ({ title, description, parent }
         : { title: string, description: string, parent: Category | null }) => {
         
-        let parentId = parent? parent.id : null
+        const parentId = parent? parent.id : null
         console.log(title,description,parent)
         try {
             const response = await fetch("/api/categories/", {
@@ -37,13 +37,12 @@ export default class CategoriesServices {
                 body: JSON.stringify({title,description,parentId})
             })
 
-            const data = await response.json()
-            console.log("----------->",data)
             if (response.ok) {
+                const data = await response.json()
                 return {success: true, message:"Category created!", data:data.newCategory}
             }
 
-            return {success: false, message:data.message, data:response.status}
+            return {success: false, message:"Couldn't create the new category", data:response.status}
         } catch (error: any) {
             console.error(error)
             return {success: false, message:"Error creating Category!", data:error.message}
@@ -61,15 +60,14 @@ export default class CategoriesServices {
                 method:"DELETE"
             })
 
-            const data = await response.json()
-            console.log(data)
             
             // check response
             if (response.ok) {
+                const data = await response.json()
                 return {success: true, message:`${data.categoryName} was deleted`,data:data.categoryName}
             }
 
-            return {success:false, message:data.message, data:`Error ${response.status}`}
+            return {success:false, message:"Couldn't delete the category!", data:`Error ${response.status}`}
         } catch (error: any) {
             console.log("it's that case bitch")
             return {success:false, message:"Failed to delete Category", data:error.message}
@@ -94,16 +92,44 @@ export default class CategoriesServices {
                 })
             })
 
-            const data = await updatedResponse.json()
-
+            
             // check response 
             if (updatedResponse.ok) {
+                const data = await updatedResponse.json()
                 return {success: true, message:"Category Updated!",data:data.updatedCategory}
             }
 
-            return {success: false, message:"Error while updating category!",data:`${data.message}`}
+            return {success: false, message:"Error while updating category!",data:`${updatedResponse.status}`}
         } catch (error:any) {
             return {success: false, message:"Failed to update category",data:error.message}
+        }
+    }
+
+
+
+    //* update display state for category
+    updateDisplayStateForCategory = async (categoryId: string) => {
+        try {
+            //* no require data supplied
+            if (!categoryId) return { success: false, message: "messing required data!", data: null }
+            
+            const searchParams = new URLSearchParams()
+            searchParams.append("categoryId",categoryId)
+
+            //* update the value in db
+            const response = await fetch(`/api/categories?${searchParams}`, {
+                method:"PUT"
+            })
+
+
+            if (response.ok) {
+                await response.json()
+                return {success: true, data:"Category is now on display!",message:"Updated!"}
+            }
+
+            return {success: false, message:"Could't update Category!",data:response.status}
+        } catch (error:any) {
+            return {success: false, message:"Failed to update Category!",data:error.message}
         }
     }
 }

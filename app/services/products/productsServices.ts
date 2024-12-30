@@ -95,7 +95,7 @@ class ProductsServices{
 
             // check response
             if (response.ok) {
-                const data = await response.json()
+                await response.json()
                 // add to client current list
                 updateDataTable()
             }

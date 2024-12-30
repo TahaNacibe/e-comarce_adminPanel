@@ -10,7 +10,7 @@ import { CategorySelector } from "../../components/category-selector";
 import { ImageUploadSection } from "../../components/image-upload-section";
 import { ProductDetails } from "../../components/product-details-column";
 import PropertiesWidget from "../../components/properties-widget";
-import { Category, FormDataInterface, PropertiesInterface, FormErrors, PropertyType } from "../../types/pageTypes";
+import { Category, FormErrors, PropertyType } from "../../types/pageTypes";
 import CategoriesServices from "@/app/services/categories/categories_services";
 import ProductsServices from "@/app/services/products/productsServices";
 import { useToast } from "@/hooks/use-toast";
@@ -69,7 +69,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
           redirect("/unauthorized-access");
         }
 
-        const [productResponse, categoriesResponse] = await Promise.all([
+        const [productResponse] = await Promise.all([
           productServices.getProductDetailsById(resolvedParams.id),
           categoriesServices.getCategoriesListFromDb({ setCategoriesList: setCategories })
         ]);
@@ -152,11 +152,11 @@ export default function EditProductPage({ params }: EditProductPageProps) {
   };
 
   const removeProperty = (propertyLabel: string) => {
-    setProperties(prev => prev.filter((item, i) => item.label !== propertyLabel));
+    setProperties(prev => prev.filter((item) => item.label !== propertyLabel));
   };
 
   const editProperty = (editedProperty: PropertyType, oldLabel: string) => {
-    setProperties(prev => prev.map((item, index) => item.label === oldLabel ? editedProperty : item));
+    setProperties(prev => prev.map((item) => item.label === oldLabel ? editedProperty : item));
   };
 
   // Form submission

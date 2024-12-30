@@ -25,7 +25,7 @@ import { Badge } from "@/components/ui/badge"
 import { Category } from "../products/types/pageTypes"
 import CategorySheet from "./components/input_for_item"
 import { Input } from "@/components/ui/input"
-import { Alert } from "@/components/ui/alert"
+import { Switch } from "@/components/ui/switch"
 
 export default function CategoriesPage() {
 
@@ -57,6 +57,7 @@ export default function CategoriesPage() {
     // instances
     const categoriesServices = new CategoriesServices()
 
+    //* consts
     const filters = ["All", "Sub", "Separate"];
 
 
@@ -65,7 +66,7 @@ export default function CategoriesPage() {
     const loadCategoriesList = async () => {
         if (session) {
             //* check if user have access before loading data
-            if (session.user.role !== "ADMIN" && session.user.role !== "SUB_ADMIN") {
+            if (session.user.role !== "ADMIN" && session.user.role !== "SUB_ADMIN" && session.user.role !== "DEVELOPER") {
                 router.push("/unauthorized-access")
                 return;
             }
@@ -118,7 +119,8 @@ export default function CategoriesPage() {
                 title: response.message,
             })
             // update client side list
-            setCategoriesList(prev => prev.map((cat) => cat.id === response.data.id? response.data : cat))
+            setFilteredList(prev => prev.map((cat) => cat.id === response.data.id? response.data : cat))
+            // setCategoriesList(prev => prev.map((cat) => cat.id === response.data.id? response.data : cat))
         } else {
             // handle error display
             toast({
@@ -142,7 +144,8 @@ export default function CategoriesPage() {
                 title: response.message,
             })
             // update client 
-            setCategoriesList(prev => [...prev,response.data])
+            setFilteredList(prev => [...prev,response.data])
+            // setCategoriesList(prev => [...prev,response.data])
         } else {
             // handle the error
             toast({
@@ -284,6 +287,27 @@ export default function CategoriesPage() {
 
 
 
+    //* change item display state
+    async function handleSwitchOnDisplayState(value: boolean, categoryId:string) {
+        toast({
+            title:"Updating..."
+        })
+        const response = await categoriesServices.updateDisplayStateForCategory(categoryId)
+        if (response.success) {
+            setFilteredList(prev => prev.map((cat) => {
+                if (cat.id === categoryId) {
+                    cat.isOnDisplay = value
+                }
+                return cat
+            }))
+            // setCategoriesList(prev => prev.map((cat) => cat.id === categoryId? cat.isOnDisplay = value : cat))
+        }
+        toast({
+            title: response.success ? "Updated!" : "Failed to update!",
+            description: response.message
+        })
+    }
+
     //* ui tree
     return (
         <div className="">
@@ -291,7 +315,7 @@ export default function CategoriesPage() {
             <CategorySheet
             open={showInputSection}
             onOpenChange={setShowInputSection}
-            categoriesList={categoriesList}
+            categoriesList={filteredList}
             editData={editData}
             onCategoryAdd={onCategoryAdd}
             onErrorHold={onErrorCatches}
@@ -369,6 +393,7 @@ export default function CategoriesPage() {
                                 <TableRow className="bg-gray-50/5">
                                     <TableHead className="w-[300px]">Name</TableHead>
                                     <TableHead>Description</TableHead>
+                                    <TableHead>Is on display</TableHead>
                                     <TableHead>Parent</TableHead>
                                     <TableHead className="w-[100px] text-right">Actions</TableHead>
                                 </TableRow>
@@ -386,8 +411,8 @@ export default function CategoriesPage() {
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    filteredList.map((category) => (
-                                        <TableRow key={category.id}>
+                                    filteredList.map((category,index) => (
+                                        <TableRow key={category.id + index}>
                                             <TableCell>
                                                 <Badge variant="outline">
                                                     {category.name}
@@ -396,6 +421,13 @@ export default function CategoriesPage() {
                                             <TableCell className="text-muted-foreground max-w-md">
                                                 {category.description || "No description"}
                                             </TableCell>
+
+                                            <TableCell>
+                                                <Switch
+                                                    checked={category.isOnDisplay}
+                                                    onCheckedChange={(value) => handleSwitchOnDisplayState(value,category.id)} />
+                                            </TableCell>
+
                                             <TableCell>
                                                 {category.parentTag ? (
                                                     <Badge variant="secondary">

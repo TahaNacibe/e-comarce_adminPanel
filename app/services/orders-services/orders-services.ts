@@ -20,14 +20,14 @@ export default class OrderServices {
             const response = await fetch(`/api/orders?${queryParams.toString()}`, { method: "GET" });
 
 
-            const data = await response.json()
             // handle response
             if (response.ok) {
+                const data = await response.json()
                 return {success:true, message:"Orders List loaded!",data:data,}
             }
 
             //* other wise handle error
-            return {success: false, message:data.message, data:data.data}
+            return {success: false, message:'Failed to load orders', data:response.status}
         } catch (error:any) {
             return {success: false, message:"Error fetching orders!", data:error.message}
         }
@@ -38,12 +38,11 @@ export default class OrderServices {
     getOrdersListStream = async (setOrdersList:any) => {
             const eventSource = new EventSource("/api/sse")
             eventSource.onmessage = (event) => {
-                let newOrders = JSON.parse(event.data) as Orders[]
+                const newOrders = JSON.parse(event.data) as Orders[]
                 setOrdersList((prevOrders: Orders[]) => [...newOrders,...prevOrders])
                 }
           
               eventSource.onerror = (error:any) => {
-                console.error("SSE error:", error)
                 eventSource.close()
               }
           
@@ -57,18 +56,13 @@ export default class OrderServices {
 
     //* delete item or many items from db
     handleDeletingOrderOrManyOrdersFromDb = async ({ orderId, ordersList }: { orderId?: string | null, ordersList?: any | null }) => {
-        console.log("  items case")
-        console.log(ordersList)
         const queryParams = new URLSearchParams()
         //* if order is is served
         if (orderId) queryParams.append("orderId", orderId)
-        console.log("---------------------->")
         //* if orders list is served
         if (ordersList) {
-            console.log(" list items case")
             // create a list of ids
             const ordersIdsString = Array.from(ordersList).join("_")
-            console.log(ordersIdsString)
             queryParams.append("ordersListIds",ordersIdsString)
         }
 
@@ -79,12 +73,12 @@ export default class OrderServices {
                 method:"DELETE"
             })
 
-            const data = await response.json()
             if (response.ok) {
+                const data = await response.json()
                 return {success:true, message:data.message}
             }
 
-            return {success:false, message:data.message}
+            return {success:false, message:"Couldn't delete items"}
         } catch (error: any) {
             console.log(error)
             return {success:false, message:error.message}
@@ -101,11 +95,11 @@ export default class OrderServices {
                 method: "PUT",
             })
 
-            const data = await response.json()
             if (response.ok) {
+                await response.json()
                 return {success:true,message:"Order Updated"}
             }
-            return {success:false, message:data.message}
+            return {success:false, message:"Failed to update verification state"}
         } catch (error:any) {
             return {success:false, message:error.message}
         }
@@ -121,12 +115,12 @@ export default class OrderServices {
                 body:JSON.stringify({newOrder:newOrder})
             })
 
-            const data = await updateResponse.json()
             if (updateResponse.ok) {
+                const data = await updateResponse.json()
                 return {success:true, message:"Order Updated!",data:data.updatedOrder}
             }
 
-            return {success:false, message:"Update Failed!",data:data.message}
+            return {success:false, message:"Update Failed!",data:updateResponse.status}
         } catch (error:any) {
             return {success:false, message:"Error while updating!",data:error.message}
         }

@@ -105,6 +105,7 @@ model Tags {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
   name        String @unique
   description String
+  isOnDisplay Boolean
   parentTag   Tags? @relation("ParentTagKey",fields: [parentId],references: [id], onDelete: NoAction, onUpdate: NoAction)
   parent  Tags? @relation("ParentTagKey")
   parentId    String? @unique  @db.ObjectId 
@@ -164,4 +165,10 @@ model shopPreferences {
   shopId    String @map("_id") @id
   shopIcon  String
   shopName  String
+  TikTokLink String?
+  facebookLink String?
+  instagramLink String?
+  phoneNumber String
+  email String
+  address String
 }

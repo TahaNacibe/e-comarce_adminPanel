@@ -18,7 +18,7 @@ const authOptions: AuthOptions = {
   },
   pages: {},
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user}) {
       if (user) {
         const dbUser = await prisma.user.findUnique({
           where: { email: user.email! },

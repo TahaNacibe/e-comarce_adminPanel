@@ -43,7 +43,7 @@ const LoadingWidget = () => {
   
     // ui tree
     return (
-        <div className="space-y-2 bg-background">
+        <div className="space-y-2 bg-background z-50">
         {/* badge of title */}
             <Badge>Categories</Badge>
         {/* popover */}
@@ -56,7 +56,7 @@ const LoadingWidget = () => {
             </Button>
                 </PopoverTrigger>
         {/* popover content */}
-                <PopoverContent className="p-0 bg-background" side="bottom" align="start">
+                <PopoverContent className="p-0 bg-background z-10" side="bottom" align="start">
         {/* search command */}
             <Command>
             <CommandInput placeholder="Search categories..." />

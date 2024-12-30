@@ -2,7 +2,7 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 // components/CategorySelector.tsx
 import { Button } from "@/components/ui/button";
-import { Category, FormDataInterface, PropertiesInterface, PropertyType } from "../types/pageTypes";
+import { Category, FormDataInterface, PropertyType } from "../types/pageTypes";
 import { FormErrors } from "../types/pageTypes";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ImageUploadSection } from "../components/image-upload-section";
@@ -10,10 +10,9 @@ import { CategorySelector } from "../components/category-selector";
 import { ProductDetails } from "../components/product-details-column";
 import PropertiesWidget from "../components/properties-widget";
 import CategoriesServices from "@/app/services/categories/categories_services";
-import ToastItem from "@/app/components/taostItem";
 import ProductsServices from "@/app/services/products/productsServices";
 import { useToast } from "@/hooks/use-toast";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
   
 
 
@@ -54,14 +53,8 @@ import { redirect, useRouter } from "next/navigation";
       
     useEffect(() => {
       // load the list of categories
-      categoriesServices.getCategoriesListFromDb({ setCategoriesList: setCategories }).then((response) => {
+      categoriesServices.getCategoriesListFromDb({ setCategoriesList: setCategories }).then((_) => {
         setIsCategoriesLoading(false)
-        if (response?.success!) {
-          ToastItem({
-            title: response?.message!,
-            desc:response?.data
-        })
-        }
       })
     }, [])
     
@@ -143,14 +136,14 @@ import { redirect, useRouter } from "next/navigation";
       
       // Remove property
         const removeProperty = (label: string) => {
-            setProperties((prev) => prev.filter((item, i) => item.label !== label));
+            setProperties((prev) => prev.filter((item) => item.label !== label));
     };
     
 
       
       // edit property
       const editProperty = (editedProperty: PropertyType, oldLabel: string) => {
-          setProperties(prev => prev.map((item,index) => item.label === oldLabel? editedProperty : item ))
+          setProperties(prev => prev.map((item) => item.label === oldLabel? editedProperty : item ))
     }
     
 

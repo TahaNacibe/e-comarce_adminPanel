@@ -9,11 +9,11 @@ export default class StaticsServices {
             
             if (response.ok) {
                 const data = await response.json()
-                return data
+                return {succuss:true, message:"data loaded!",data:data}
             }
-            return 
-        } catch (error) {
-            console.log(error)
+            return {succuss:false, message:"Couldn't load data",data:"something went wrong!"}
+        } catch (error:any) {
+            return {succuss:false, message:"Error while loading data",data:error.message}
         }
     }
 

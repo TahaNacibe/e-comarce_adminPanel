@@ -3,190 +3,33 @@
 import { useEffect, useState, useMemo } from 'react';
 import StaticsServices from '../services/statics-services/statics_services';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Calendar, Package, Tag, TrendingUp, Users, DollarSign, ChevronUp, ChevronDown } from "lucide-react";
+import { Calendar, Package, Tag, TrendingUp, Users} from "lucide-react";
 import { Bar, BarChart } from "recharts";
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { PopularityItem, ShopStatistics } from './types';
+import PopularityCard from './components/popelarity_card';
+import StatsCard from './components/status_card';
 
-// ... previous interfaces remain the same ...
 
-interface PopularityItem {
-    name: string;
-    count: number;
-    percentage: number;
-}
 
-// Base entity types
-interface Tag {
-    id: string;
-    name: string;
-    description: string;
-    parentId: string | null;
-    parentTag?: Tag;
-    productsIds: string[];
-}
 
-interface Product {
-    id: string;
-    name: string;
-    price: number;
-    description: string;
-}
 
-// Statistics types
-interface ShopStatistics {
-    message: string;
-    ordersByTime: { [key: string]: number };
-    productCounts: { [key: string]: number };
-    productsData: Product[];
-    tagCounts: { [key: string]: number };
-    tagsData: Tag[];
-}
-
-// Component props types
-interface PopularityItem {
-    name: string;
-    count: number;
-    percentage: number;
-}
-
-interface PopularityCardProps {
-    title: string;
-    subtitle?: string;
-    items: PopularityItem[];
-}
-
-interface StatsCardProps {
-    title: string;
-    value: string | number;
-    change?: number;
-    icon: React.ElementType;
-    trend?: 'up' | 'down' | 'neutral';
-}
-
-// Chart data types
-interface OrderChartData {
-    date: string;
-    orders: number;
-}
-
-interface ChartDataPoint {
-    name: string;
-    orders: number;
-}
-
-// Dashboard metrics and state types
-interface DashboardMetrics {
-    totalOrders: number;
-    avgOrders: number;
-}
-
-interface OrderTrends {
-    growth: number;
-    trend: 'up' | 'down' | 'neutral';
-}
-
-interface DashboardState {
-    orderChartData: OrderChartData[];
-    popularProducts: PopularityItem[];
-    popularTags: PopularityItem[];
-    metrics: DashboardMetrics;
-    orderTrends: OrderTrends;
-}
-
-const PopularityCard = ({ 
-    title, 
-    subtitle,
-    items 
-}: { 
-    title: string;
-    subtitle?: string;
-    items: PopularityItem[];
-}) => (
-    <Card className="col-span-1">
-        <CardHeader>
-            <CardTitle className="text-lg font-semibold">{title}</CardTitle>
-            {subtitle && <CardDescription>{subtitle}</CardDescription>}
-        </CardHeader>
-        <CardContent>
-            <div className="space-y-6">
-                {items.map((item, index) => (
-                    <div key={index} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100/10 text-blue-600 text-xs font-medium">
-                                    {index + 1}
-                                </span>
-                                <span className="text-sm font-medium truncate max-w-[200px]" title={item.name}>
-                                    {item.name}
-                                </span>
-                            </div>
-                            <span className="text-sm font-semibold">{item.count}</span>
-                        </div>
-                        <div className="w-full h-2 bg-gray-100/10 rounded-full overflow-hidden">
-                            <div 
-                                className="h-full bg-blue-600 rounded-full transition-all duration-500 ease-in-out"
-                                style={{ width: `${item.percentage}%` }}
-                            />
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </CardContent>
-    </Card>
-);
-
-const StatsCard = ({
-    title,
-    value,
-    change,
-    icon: Icon,
-    trend = 'neutral'
-}: {
-    title: string;
-    value: string | number;
-    change?: number;
-    icon: any;
-    trend?: 'up' | 'down' | 'neutral';
-}) => (
-    <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium ">{title}</CardTitle>
-            <Icon className="h-4 w-4 " />
-        </CardHeader>
-        <CardContent>
-            <div className="text-2xl font-bold text-gray-600">{value}</div>
-            {typeof change !== 'undefined' && (
-                <div className="flex items-center space-x-1 text-sm">
-                    {trend !== 'neutral' && (
-                        <span className={`inline-flex items-center ${
-                            trend === 'up' ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                            {trend === 'up' ? (
-                                <ChevronUp className="h-4 w-4" />
-                            ) : (
-                                <ChevronDown className="h-4 w-4" />
-                            )}
-                        </span>
-                    )}
-                    <span className={`font-medium ${
-                        trend === 'up' ? 'text-green-600' : 
-                        trend === 'down' ? 'text-red-600' : 
-                        'text-gray-600'
-                    }`}>
-                        {Math.abs(change).toFixed(1)}%
-                    </span>
-                    <span className="text-gray-600">vs. last period</span>
-                </div>
-            )}
-        </CardContent>
-    </Card>
-);
 
 export default function AdminPanel() {
+    //* manage state
     const [statsData, setStatsData] = useState<ShopStatistics | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
+
+    //* instates
     const staticsServices = new StaticsServices();
 
+    //* hooks
+    const { data: session } = useSession()
+    const router = useRouter()
+
+    //* consts
     const ordersChartConfig = {
         orders: {
             label: "Orders",
@@ -194,29 +37,32 @@ export default function AdminPanel() {
         }
     } satisfies ChartConfig;
 
-    const productsChartConfig = {
-        orders: {
-            label: "Orders",
-            color: "#2563eb",
-        }
-    } satisfies ChartConfig;
 
-    
-    useEffect(() => {
-        const fetchData = async (): Promise<void> => {
-            try {
-                setLoading(true);
-                const data = await staticsServices.getShopStaticsAndData();
-                setStatsData(data);
-            } catch (error) {
-                console.error('Failed to fetch statistics:', error);
-            } finally {
-                setLoading(false);
+    //* functions
+    const getDetailsForDashBoard = async () => {
+        if (session) {
+             //* check if user have access before loading data
+            if (session.user.role !== "ADMIN" && session.user.role !== "SUB_ADMIN" && session.user.role !== "DEVELOPER") {
+            router.push("/unauthorized-access")
+            return;
             }
-        };
-        fetchData();
-    }, []);
+            setLoading(true);
+            const response = await staticsServices.getShopStaticsAndData();
+            if (response.succuss) {
+                setStatsData(response.data)
+            }
+            setLoading(false)
 
+        }
+    }
+
+    //* initial load
+    useEffect(() => {
+        getDetailsForDashBoard()
+    }, [session]);
+
+
+    //* create required data
     const {
         orderChartData,
         popularProducts,
@@ -294,6 +140,15 @@ export default function AdminPanel() {
         };
     }, [statsData]);
 
+
+
+
+
+
+
+
+
+    //* loading page
     if (loading) {
         return (
             <div className="flex items-center justify-center h-screen">
@@ -305,13 +160,16 @@ export default function AdminPanel() {
         );
     }
 
+
+
+    //* ui tree
     return (
         <div className="min-h-screen">
             <div className="p-8 max-w-7xl mx-auto space-y-8">
                 <div className="flex flex-col space-y-4 md:flex-row md:justify-between md:items-center">
                     <div>
                         <h1 className="text-3xl font-bold ">Admin Dashboard</h1>
-                        <p className="text-gray-600 mt-1">Monitor your store's performance and analytics</p>
+                        <p className="text-gray-600 mt-1">Monitor your store&apos;s performance and analytics</p>
                     </div>
                     <div className="flex items-center space-x-2 text-sm text-gray-600 bg-white px-4 py-2 rounded-lg shadow-sm">
                         <Calendar className="h-4 w-4" />
@@ -344,6 +202,8 @@ export default function AdminPanel() {
                     />
                 </div>
 
+                
+                {/* charts */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <Card className="lg:col-span-2">
                         <CardHeader>
@@ -364,6 +224,8 @@ export default function AdminPanel() {
                     </Card>
                 </div>
 
+                
+                {/* cards */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <PopularityCard 
                         title="Top Selling Products"
