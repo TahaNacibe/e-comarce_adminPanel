@@ -33,37 +33,32 @@ function sleep(time: number) {
 // Async generator to fetch new orders and yield data to the stream (this will fetch the new orders and yeld (notify the stream that there's a new update to get))
 let lastFetchedAt = new Date(Date.now() - 5000); // Start 5 seconds in the past
 let fetchedId : string | null = null
+// Optimize your iterator
 async function* makeIterator() {
-  console.log("SSE connection opened successfully.");
-  while (true) {
-    try {
+  let lastCheck = new Date();
+  
+  try {
+    while (true) {
       const newOrders = await prisma.orders.findMany({
-        where: {
-          createdAt: { gt: lastFetchedAt }, // Orders created after the last fetched time
-        },
+        where: { createdAt: { gt: lastCheck } },
+        orderBy: { createdAt: 'desc' },
+        take: 100
       });
-      console.log("New orders received:", newOrders);
-
-      if (newOrders.length > 0) {
-        if (newOrders[newOrders.length - 1].id !== fetchedId) {
-          yield `data: ${JSON.stringify(newOrders)}\n\n`; // SSE data format
-          lastFetchedAt = new Date(newOrders[newOrders.length - 1].createdAt);
-          fetchedId = newOrders[newOrders.length - 1].id;
-        } else {
-          yield `data: {}\n\n`;
-        }
+      
+      if (newOrders.length) {
+        yield `data: ${JSON.stringify(newOrders)}\n\n`;
+        lastCheck = new Date(newOrders[0].createdAt);
       } else {
         yield `data: {}\n\n`;
       }
-    } catch (error) {
-      console.error("Error fetching new orders:", error);
-      yield `data: { "error": "Failed to fetch orders" }\n\n`;
+      
+      await new Promise(resolve => setTimeout(resolve, 3000));
     }
-
-    await sleep(5000); // Wait 5 seconds before checking again
+  } catch (error) {
+    console.error('SSE Error:', error);
+    yield `data: {"error": "Connection failed"}\n\n`;
   }
-  }
-  
+}
 
 export async function GET() {
   try {
