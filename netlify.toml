@@ -8,4 +8,6 @@
   functions = "netlify-functions"
 
 [functions]
-  max_duration = 60  # Max function duration in seconds
+  [functions.max_duration]
+  value = 60
+
