@@ -1,6 +1,7 @@
 import createRecept from "@/lib/recipet_creator";
 import { Orders } from "@prisma/client";
 import exportFromJSON from "export-from-json";
+import PreferencesServices from "../preferences-services/preferences_services";
 
 export default class OrderServices {
 
@@ -190,23 +191,49 @@ const formattedData = data.orders.map((order: Orders) => {
     }
 
 
-    createRecipeForOrder = (order: Orders) => {
-        const recipe = createRecept({ clientName:order.name,
-            totalPrice:order.orderMetaData.totalPrice,
-            createdAt:order.createdAt,
-            productsData: order.orderMetaData.productsMetaDataList.map((product) => ({
-                productName: product.productName,
-                productCount: product.quantity,
-                productTotal: product.unitePrice * product.quantity,
-                productPrice: product.unitePrice,
-            })),
-            fullAddress: `${order.city} ${order.postalCode} ${order.address} N-${order.houseNumber}`,
-        })
-        
-        const fileName = `recipe for ${order.name}`
-        const exportType = exportFromJSON.types.txt
-        const file = exportFromJSON({data:recipe,fileName,exportType})
+    createRecipeForOrder = async (order: Orders) => {
+        try {
+            const shopServices = new PreferencesServices();
+    
+            // Wait for the shop details to be loaded
+            const shopData = await shopServices.loadShopDetailsInStart();
+            
+            if (shopData.success) {
+                // Generate the receipt
+                const recipe = await createRecept({
+                    clientName: order.name,
+                    totalPrice: order.orderMetaData.totalPrice,
+                    createdAt: order.createdAt,
+                    productsData: order.orderMetaData.productsMetaDataList.map((product) => ({
+                        productName: product.productName,
+                        productCount: product.quantity,
+                        productTotal: product.unitePrice * product.quantity,
+                        productPrice: product.unitePrice,
+                    })),
+                    fullAddress: `${order.city} ${order.postalCode} ${order.address} N-${order.houseNumber}`,
+                    shopDetails: shopData.data || null,
+                });
+    
+                // Log the receipt content to verify if it's correct
+                console.log("Generated Recipe Content:", recipe);
+    
+                // After receipt generation, proceed to create the file
+                const fileName = `recipe_for_${order.name}.txt`;
+                const blob = new Blob([recipe], { type: 'text/plain' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = fileName;
+                link.click();
+    
+                console.log("File downloaded successfully with name:", fileName);
+            } else {
+                console.error("Error loading shop details:", shopData);
+            }
+        } catch (error) {
+            console.error("Error during receipt creation or file download:", error);
+        }
     }
+    
 
 
 }

@@ -34,7 +34,7 @@ function sleep(time: number) {
 let lastFetchedAt = new Date(Date.now() - 5000); // Start 5 seconds in the past
 let fetchedId : string | null = null
 async function* makeIterator() {
-  
+  console.log("SSE connection opened successfully.");
     while (true) {
             // Fetch orders created after the last fetched time
             const newOrders = await prisma.orders.findMany({
@@ -42,6 +42,8 @@ async function* makeIterator() {
                 createdAt: { gt: lastFetchedAt }, // Orders created after the last fetched time
               },
             });
+      
+            console.log("New orders received:", newOrders);
         if (newOrders.length > 0) {
             if (newOrders[newOrders.length - 1].id !== fetchedId) {
                 yield `data: ${JSON.stringify(newOrders)}\n\n`; // SSE data format

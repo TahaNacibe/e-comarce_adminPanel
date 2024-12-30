@@ -1,3 +1,5 @@
+
+
 type ProductsData = {
   productName: string;
   productCount: number;
@@ -5,21 +7,25 @@ type ProductsData = {
   productTotal: number;
 };
 
-export default function createReceipt({
+export default async function createReceipt({
   clientName,
   totalPrice,
   createdAt,
   productsData,
   fullAddress,
+  shopDetails
 }: {
   clientName: string;
   totalPrice: number;
   createdAt: Date;
   productsData: ProductsData[];
-  fullAddress: string;
+    fullAddress: string;
+    shopDetails:any
 }) {
   // Helper function to create separator lines
   const createLine = (char: string = "=", length: number = 58) => char.repeat(length) + "\n";
+
+  
   
   // Helper function to center text
   const centerText = (text: string, width: number = 58) => {
@@ -53,12 +59,14 @@ export default function createReceipt({
   receipt += centerText("SALES RECEIPT") + "\n";
   receipt += createLine("-");
   
-  // Business Info (you can customize this)
-  receipt += centerText("Your Business Name") + "\n";
-  receipt += centerText("123 Business Street") + "\n";
-  receipt += centerText("City, State ZIP") + "\n";
-  receipt += centerText("Phone: (555) 555-5555") + "\n";
-  receipt += createLine("-");
+  if (shopDetails) {
+    // Business Info (you can customize this)
+    receipt += centerText(shopDetails.shopName) + "\n";
+    receipt += centerText(shopDetails.address) + "\n";
+    receipt += centerText("Constantine") + "\n";
+    receipt += centerText(shopDetails.phoneNumber) + "\n";
+    receipt += createLine("-");
+  }
 
   // Order Details
   receipt += `Date: ${formattedDate}\n`;
@@ -99,6 +107,9 @@ export default function createReceipt({
   receipt += centerText("Thank you for your business!") + "\n";
   receipt += centerText("Please keep this receipt for your records") + "\n";
   receipt += createLine();
+
+
+  console.log(receipt)
 
   return receipt;
 }
