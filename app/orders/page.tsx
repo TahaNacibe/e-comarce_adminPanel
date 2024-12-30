@@ -130,15 +130,21 @@ export default function OrdersPage() {
       loadOrdersList({ pageIndex: 1 });
     }, [session, filterKey]);
     
-    useEffect(() => {
+  useEffect(() => {
+    if (activePageIndex === 1) {
+      const interval = setInterval(() => loadOrdersList({pageIndex:1}), 60000);
+  return () => clearInterval(interval);
+      }
       // Listen to new orders via SSE
-       ordersServices.getOrdersListStream(setOrdersList)
-  },[])
+      //  ordersServices.getOrdersListStream(setOrdersList)
+  },[activePageIndex])
 
 
   //* Handle search input change and update data accordingly
   useEffect(() => {
+    if (debouncedSearchQuery !== "") {
       loadOrdersList({ pageIndex: 1, searchQuery: debouncedSearchQuery});
+    }
   }, [debouncedSearchQuery]); // This effect runs when the debounced search query changes
 
   //* handle delete operations
