@@ -3,9 +3,9 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ReactNode, useEffect, useState } from "react"
-import { ChartColumn, DoorOpen, Menu, NotebookText, Package, Tags, Wrench, X } from "lucide-react"
+import { ChartColumn, DoorOpen, LogOut, Menu, NotebookText, Package, Tags, Wrench, X } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
-import { useSession } from "next-auth/react"
+import { signIn, signOut, useSession } from "next-auth/react"
 import ProfileImageAndPlaceHolder from "./profileImageWidget"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -82,7 +82,9 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
         //* in case no user is signed in
         if (!session?.user) return (
             <div className="border-b px-1 py-2">
-                <Button className=""> 
+                <Button
+                    onClick={() => signIn("google")}
+                    className=""> 
                     {isSideBarCollapsed ? <DoorOpen size={25} /> : 
                     <h1>Sign In first</h1>}
                 </Button>
@@ -159,6 +161,7 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
                         <div>
                             {/* user profile widget */}
                             <ProfileWidget />
+                            {/* other stuff */}
                             <nav className="space-y-2 pt-2">
                                 {sideBarItems.map((tab,index) => {
                                     const isActive = pathname === tab.link
@@ -198,6 +201,14 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
                                         </Link>
                                     )
                                 })}
+
+                                {/* sign out */}
+                                <Button
+                                    onClick={() => signOut()}
+                                    variant={"outline"} className="text-red-900">
+                                    <LogOut />
+                                    <h1>LogOut</h1>
+                                </Button>
                             </nav>
                         </div>
                     </aside>
