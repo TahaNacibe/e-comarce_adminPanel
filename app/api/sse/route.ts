@@ -35,49 +35,49 @@ let lastFetchedAt = new Date(Date.now() - 5000); // Start 5 seconds in the past
 let fetchedId : string | null = null
 async function* makeIterator() {
   console.log("SSE connection opened successfully.");
-    while (true) {
-            // Fetch orders created after the last fetched time
-            const newOrders = await prisma.orders.findMany({
-              where: {
-                createdAt: { gt: lastFetchedAt }, // Orders created after the last fetched time
-              },
-            });
-      
-            console.log("New orders received:", newOrders);
-        if (newOrders.length > 0) {
-            if (newOrders[newOrders.length - 1].id !== fetchedId) {
-                yield `data: ${JSON.stringify(newOrders)}\n\n`; // SSE data format
-          
-                // Update the last fetched time to the most recent order
-                  lastFetchedAt = new Date(newOrders[newOrders.length - 1].createdAt);
-                  fetchedId = newOrders[newOrders.length - 1].id
-            } else {
-              yield `data: {}\n\n`;
-                }
+  while (true) {
+    try {
+      const newOrders = await prisma.orders.findMany({
+        where: {
+          createdAt: { gt: lastFetchedAt }, // Orders created after the last fetched time
+        },
+      });
+      console.log("New orders received:", newOrders);
+
+      if (newOrders.length > 0) {
+        if (newOrders[newOrders.length - 1].id !== fetchedId) {
+          yield `data: ${JSON.stringify(newOrders)}\n\n`; // SSE data format
+          lastFetchedAt = new Date(newOrders[newOrders.length - 1].createdAt);
+          fetchedId = newOrders[newOrders.length - 1].id;
         } else {
           yield `data: {}\n\n`;
         }
-  
-  
-      await sleep(5000); // Wait 5 seconds before checking again
+      } else {
+        yield `data: {}\n\n`;
+      }
+    } catch (error) {
+      console.error("Error fetching new orders:", error);
+      yield `data: { "error": "Failed to fetch orders" }\n\n`;
     }
+
+    await sleep(5000); // Wait 5 seconds before checking again
+  }
   }
   
 
 export async function GET() {
-  //start the checking and notifying process when the client send the first request 
+  try {
     const iterator = makeIterator();
-    // pause as we said before
-  const stream = iteratorToStream(iterator);
+    const stream = iteratorToStream(iterator);
 
-  // headers defy the way the connection is going to be (sent only once at the start of the pipe)
-  const headers = new Headers();
-  headers.set("Content-Type", "text/event-stream");
-  headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
-  headers.set("Connection", "keep-alive");
-  
+    const headers = new Headers();
+    headers.set("Content-Type", "text/event-stream");
+    headers.set("Cache-Control", "no-cache");
+    headers.set("Connection", "keep-alive");
 
-    
- // return the stream
-  return new NextResponse(stream, { headers });
+    return new NextResponse(stream, { headers });
+  } catch (error) {
+    console.error("Error in SSE stream:", error);
+    return new NextResponse("Internal Server Error", { status: 500 });
+  }
 }
