@@ -54,8 +54,10 @@ async function* makeIterator() {
       
       await new Promise(resolve => setTimeout(resolve, 3000));
     }
-  } catch (error) {
-    console.error('SSE Error:', error);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('SSE Error:', error.message);      
+    }
     yield `data: {"error": "Connection failed"}\n\n`;
   }
 }
@@ -71,8 +73,10 @@ export async function GET() {
     headers.set("Connection", "keep-alive");
 
     return new NextResponse(stream, { headers });
-  } catch (error) {
-    console.error("Error in SSE stream:", error);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("Error in SSE stream:", error.message);      
+    }
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
