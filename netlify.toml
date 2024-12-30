@@ -9,5 +9,6 @@
 
 [functions]
   [functions.max_duration]
+  name = "sse"
   value = 60
 

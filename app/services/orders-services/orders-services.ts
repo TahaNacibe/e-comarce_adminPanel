@@ -38,14 +38,17 @@ export default class OrderServices {
     //* get orders stream 
     getOrdersListStream = async (setOrdersList:any) => {
             const eventSource = new EventSource("/api/sse")
-            eventSource.onmessage = (event) => {
+        eventSource.onmessage = (event) => {
+            console.log("Received new data:", event.data);
                 const newOrders = JSON.parse(event.data) as Orders[]
                 if (newOrders.length > 0) {
                     setOrdersList((prevOrders: Orders[]) => [...newOrders,...prevOrders])
                 }
-                }
+        }
           
-              eventSource.onerror = (error:any) => {
+          
+        eventSource.onerror = (error: any) => {
+            console.error("SSE error:", error);
                 eventSource.close()
               }
           

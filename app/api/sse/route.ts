@@ -71,13 +71,11 @@ export async function GET() {
   const stream = iteratorToStream(iterator);
 
   // headers defy the way the connection is going to be (sent only once at the start of the pipe)
-    const headers = new Headers();
-  // the received content type as stream (json string)
-    headers.set("Content-Type", "text/event-stream");
-    // don't cache return everything
-    headers.set("Cache-Control", "no-cache");
-    // keep connection alive all the time until the client said to close
+  const headers = new Headers();
+  headers.set("Content-Type", "text/event-stream");
+  headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
   headers.set("Connection", "keep-alive");
+  
 
     
  // return the stream
