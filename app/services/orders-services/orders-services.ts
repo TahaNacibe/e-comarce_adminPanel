@@ -40,7 +40,9 @@ export default class OrderServices {
             const eventSource = new EventSource("/api/sse")
             eventSource.onmessage = (event) => {
                 const newOrders = JSON.parse(event.data) as Orders[]
-                setOrdersList((prevOrders: Orders[]) => [...newOrders,...prevOrders])
+                if (newOrders.length > 0) {
+                    setOrdersList((prevOrders: Orders[]) => [...newOrders,...prevOrders])
+                }
                 }
           
               eventSource.onerror = (error:any) => {

@@ -51,7 +51,11 @@ async function* makeIterator() {
                 // Update the last fetched time to the most recent order
                   lastFetchedAt = new Date(newOrders[newOrders.length - 1].createdAt);
                   fetchedId = newOrders[newOrders.length - 1].id
+            } else {
+              yield `data: {}\n\n`;
                 }
+        } else {
+          yield `data: {}\n\n`;
         }
   
   
