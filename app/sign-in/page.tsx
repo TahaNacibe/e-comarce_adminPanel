@@ -14,7 +14,7 @@ export default function SignInPage() {
 
     // functions 
     const handleSignIn = () => {
-        session ? signOut() : signIn("google")
+        session ? signOut({callbackUrl:"/sign-in"}) : signIn("google",{redirectUrl: "/"})
        
       
     }

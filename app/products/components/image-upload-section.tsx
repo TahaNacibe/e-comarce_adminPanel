@@ -63,7 +63,7 @@ export function ImageUploadSection({
             <span className="text-red-500 text-sm">({errors.bigImage})</span>
           )}
         </Badge>
-        <div className="border-2 border-dashed rounded-lg p-4 text-center">
+        <div className="border-2 border-dashed rounded-lg text-center">
           {bigImagePreview || existingBigImage ? (
             <div className="relative">
               <Image
@@ -82,7 +82,7 @@ export function ImageUploadSection({
               </Button>
             </div>
           ) : (
-            <label className="cursor-pointer block p-8 hover:bg-gray-50 transition-colors">
+            <label className="cursor-pointer block p-8 hover:bg-gray-50/10 rounded-lg transition-colors">
               <input
                 type="file"
                 className="hidden"

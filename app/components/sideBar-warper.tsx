@@ -130,7 +130,7 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
     }
 
     async function handleSignOut() {
-        await signOut({ callbackUrl: "/" })
+        await signOut({ callbackUrl: "/sign-in" })
     }
 
     return (
