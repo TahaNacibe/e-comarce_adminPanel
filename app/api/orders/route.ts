@@ -145,7 +145,11 @@ const GET = async (req: NextRequest) => {
                 pagesCount: pagesCount,
                 status: 200,
             }),
-            { status: 200 }
+            { status: 200, headers: {
+                "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+                Pragma: "no-cache",
+                Expires: "0",
+              }, }
         );
     } catch (error:any) {
         console.error(`Error fetching orders:`, error.toString());
@@ -155,7 +159,9 @@ const GET = async (req: NextRequest) => {
                 error: error instanceof Error ? error.message : "Unknown error",
                 status: 500,
             }),
-            { status: 500 }
+            { status: 500, headers: {
+                "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+              }, }
         );
     }
 };

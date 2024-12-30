@@ -23,7 +23,9 @@ export default function SignInPage() {
         if (session) {
             redirect("/")
         }
-    },[session])
+    }, [session])
+    
+    
     return (
         <section className="flex items-center justify-center h-screen">
             <div className="text-center">
