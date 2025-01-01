@@ -80,7 +80,7 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
     const ProfileWidget = () => {
         //* in case no user is signed in
         if (!session?.user) return (
-            <div className="border-b px-1 py-2">
+            <div className="border-b px-1 py-2 flex justify-between">
                 <Button
                     onClick={() => signIn("google")}
                     className=""> 
@@ -111,7 +111,7 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
                     className="text-sm font-medium pt-2 line-clamp-1 ml-2 whitespace-nowrap"
                 >
                     {/* user name and role badge*/}
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 px-2">
                         <h1>{session?.user.name}</h1>
                         <Badge 
                             variant="destructive" 
@@ -153,7 +153,7 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
                         ${isMobileMenuOpen ? 'block' : 'hidden'} lg:block`}
                     initial={{ width: "56px", x: -200 }}
                     animate={{ 
-                        width: isSideBarCollapsed ? "56px" : "200px",
+                        width: isSideBarCollapsed ? "56px" : "250px",
                         x: isMobileMenuOpen || windowWidth >= 1024 ? 0 : -200 
                     }}
                     onHoverStart={() => !isMobileMenuOpen && setSideBarCollapsedState(false)}
