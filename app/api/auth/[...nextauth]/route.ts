@@ -32,6 +32,8 @@ const authOptions: AuthOptions = {
         // Check for authorized roles
         if (dbUser?.role !== "ADMIN" && dbUser?.role !== "SUB_ADMIN") {
           return "/unauthorized-access";
+        } else {
+          return "/"
         }
         
         if (!dbUser) {
