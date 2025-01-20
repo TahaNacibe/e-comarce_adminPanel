@@ -29,12 +29,6 @@ const authOptions: AuthOptions = {
           where: { email: user.email! },
         });
 
-        // Check for authorized roles
-        if (dbUser?.role !== "ADMIN" && dbUser?.role !== "SUB_ADMIN") {
-          return "/unauthorized-access";
-        } else {
-          return "/"
-        }
         
         if (!dbUser) {
           // Create new user with default role
@@ -45,6 +39,13 @@ const authOptions: AuthOptions = {
               role: "USER", // Set default role
             },
           });
+        }
+        
+        // Check for authorized roles
+        if (dbUser?.role !== "ADMIN" && dbUser?.role !== "SUB_ADMIN") {
+          return "/unauthorized-access";
+        } else {
+          return "/"
         }
       }
       return true;
