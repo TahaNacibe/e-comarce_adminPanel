@@ -2,6 +2,7 @@
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import AdminPanel from "./admin/page";
+import { useEffect } from "react";
 
 export default function Home() {
 
@@ -9,20 +10,24 @@ export default function Home() {
   const { data: session } = useSession()
   
 
-  if (!session) redirect("/sign-in")
-  const checkIfUserAuthorized = () => {
-    if (session) {
-      // redirect to sign in if not signed yet
-      // check if user authorized
-      return session?.user.role === "ADMIN" || session?.user.role === "SUB_ADMIN"
-    }
-  }
-
-  if (session) {
-    if (!checkIfUserAuthorized()) {
-      redirect("/unauthorized-access")
-    }
-  }
+  useEffect(() => {
+    if (!session) redirect("/sign-in")
+      const checkIfUserAuthorized = () => {
+        if (session) {
+          // redirect to sign in if not signed yet
+          // check if user authorized
+          return session?.user.role === "ADMIN" || session?.user.role === "SUB_ADMIN"
+        }
+      }
+    
+      if (session) {
+        if (!checkIfUserAuthorized()) {
+          redirect("/unauthorized-access")
+        } else {
+          redirect("/admin")
+        }
+      }
+ },[session])
 
 
 

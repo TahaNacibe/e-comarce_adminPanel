@@ -82,7 +82,7 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
         if (!session?.user) return (
             <div className="border-b px-1 py-2 flex justify-between">
                 <Button
-                    onClick={() => signIn("google")}
+                    onClick={() => signIn("google",{callbackUrl:"/"})}
                     className=""> 
                     {isSideBarCollapsed ? <DoorOpen size={25} /> : 
                     <h1>Sign In first</h1>}
