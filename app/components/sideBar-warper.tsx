@@ -206,7 +206,7 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
                                 })}
 
                                 {/* sign out */}
-                                <div
+                                {session && <div
                                     onClick={() => handleSignOut()}
                                     className="text-red-900 flex hover:bg-blue-200/10 px-4 py-2 gap-2 cursor-pointer">
                                     <LogOut />
@@ -217,7 +217,7 @@ export default function SideBarWrapper({ children }: { children: ReactNode }) {
                                                         </h1>
                                                     </span>
                                                 )}
-                                </div>
+                                </div>}
                             </nav>
                         </div>
                     </aside>

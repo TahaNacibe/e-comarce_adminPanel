@@ -12,6 +12,8 @@ const authOptions: AuthOptions = {
       authorization: {
         params: {
           redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/google`,
+          prompt: 'consent',
+          access_type: 'offline',
         },
       },
     }),
@@ -23,28 +25,33 @@ const authOptions: AuthOptions = {
   },
   pages: {},
   callbacks: {
-    async signIn({ user}) {
-      if (user) {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: user.email! },
-        });
+    // async signIn({ user}) {
+    //   if (user) {
+    //     const dbUser = await prisma.user.findUnique({
+    //       where: { email: user.email! },
+    //     });
 
         
-        if (!dbUser) {
-          // Create new user with default role
-          await prisma.user.create({
-            data: {
-              email: user.email!,
-              name: user.name,
-              role: "USER", // Set default role
-            },
-          });
-        }
+    //     if (!dbUser) {
+    //       // Create new user with default role
+    //       await prisma.user.create({
+    //         data: {
+    //           email: user.email!,
+    //           name: user.name,
+    //           role: "USER", // Set default role
+    //         },
+    //       });
+    //     }
         
-        
-      }
-      return true;
-    },
+    //     // Check for authorized roles
+    //     // if (dbUser?.role !== "ADMIN" && dbUser?.role !== "SUB_ADMIN") {
+    //     //   return "/unauthorized-access";
+    //     // } else {
+    //     //   return "/"
+    //     // }
+    //   }
+    //   return true;
+    // },
 
     async jwt({ token, user }) {
       if (user) {
@@ -67,7 +74,6 @@ const authOptions: AuthOptions = {
       }
       return session;
     },
-
   },
 };
 
