@@ -172,3 +172,10 @@ model shopPreferences {
   email String
   address String
 }
+
+model deliveryFee {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  city      String
+  price     String
+  currency  String @default("DZD")
+}

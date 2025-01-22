@@ -39,7 +39,6 @@ export default class OrderServices {
     getOrdersListStream = async (setOrdersList:any) => {
             const eventSource = new EventSource("/api/sse")
         eventSource.onmessage = (event) => {
-            console.log("Received new data:", event.data);
                 const newOrders = JSON.parse(event.data) as Orders[]
                 if (newOrders.length > 0) {
                     setOrdersList((prevOrders: Orders[]) => [...newOrders,...prevOrders])
@@ -154,7 +153,7 @@ export default class OrderServices {
             
             if (response.ok) {
                 const data = await response.json();
-const formattedData = data.orders.map((order: Orders) => {
+    const formattedData = data.orders.map((order: Orders) => {
   const { orderMetaData, ...rest } = order;
   const { totalPrice, currency, productsMetaDataList } = orderMetaData;
 
@@ -166,16 +165,16 @@ const formattedData = data.orders.map((order: Orders) => {
     [`Product ${index + 1} unitPrice`]: product.unitePrice,
   }));
 
-  // Flatten productsMetaData and add them to the rest of the order data
-  const flattenedOrder = {
-    ...rest, // Order details
-    totalPrice, // Order total price
-    currency, // Currency of the order
-    ...Object.assign({}, ...productsMetaData), // Flatten productsMetaData into the order
-  };
+    // Flatten productsMetaData and add them to the rest of the order data
+    const flattenedOrder = {
+        ...rest, // Order details
+        totalPrice, // Order total price
+        currency, // Currency of the order
+        ...Object.assign({}, ...productsMetaData), // Flatten productsMetaData into the order
+    };
 
-  return flattenedOrder;
-});
+    return flattenedOrder;
+    });
 
 
                 // my data
@@ -219,8 +218,6 @@ const formattedData = data.orders.map((order: Orders) => {
                     shopDetails: shopData.data || null,
                 });
     
-                // Log the receipt content to verify if it's correct
-                console.log("Generated Recipe Content:", recipe);
     
                 // After receipt generation, proceed to create the file
                 const fileName = `recipe_for_${order.name}.txt`;
@@ -230,7 +227,6 @@ const formattedData = data.orders.map((order: Orders) => {
                 link.download = fileName;
                 link.click();
     
-                console.log("File downloaded successfully with name:", fileName);
             } else {
                 console.error("Error loading shop details:", shopData);
             }

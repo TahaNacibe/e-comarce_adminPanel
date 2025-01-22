@@ -109,7 +109,6 @@ export default async function createReceipt({
   receipt += createLine();
 
 
-  console.log(receipt)
 
   return receipt;
 }

@@ -45,7 +45,6 @@ const POST = async (req: NextRequest) => {
 
         return NextResponse.json({message:"Created Category!",newCategory},{status:200})
     } catch (error) {
-        console.error(error)
         return NextResponse.json({message:"Failed to create category",error},{status:500})
     }
 }

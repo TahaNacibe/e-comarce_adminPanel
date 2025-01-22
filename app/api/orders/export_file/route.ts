@@ -14,7 +14,6 @@ export async function GET() {
     // Return the file as a response
     return NextResponse.json({message:"data collected",orders},{status:200});
   } catch (error) {
-    console.error("Error exporting orders:", error);
     return NextResponse.json({ error: "Failed to export orders" }, { status: 500 });
   }
 }

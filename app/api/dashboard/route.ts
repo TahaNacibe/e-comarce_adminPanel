@@ -28,7 +28,8 @@ const GET = async () => {
       select: {
         name: true,
         bigImageUrl: true,
-        price: true
+        price: true,
+        id: true
       }
     })
 
@@ -84,7 +85,6 @@ const GET = async () => {
       tagCounts, 
       ordersByTime, },{status:200});
   } catch (error) {
-    console.error("Error fetching data:", error);
     return NextResponse.json({message:"Failed to get statics",error},{status:500})
   }
 };

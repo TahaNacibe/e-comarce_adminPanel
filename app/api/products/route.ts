@@ -82,7 +82,6 @@ const GET = async (req: Request) => {
             { status: 200 }
         );
     } catch (error: any) {
-        console.error(`Error from the request: ${error.message}`, error.stack);
         return NextResponse.json(
             { message: "An error occurred while processing the request", error: error.message },
             { status: 500 }
@@ -117,7 +116,6 @@ const DELETE = async (req: Request) => {
             { status: 200 }
         );
     } catch (error: any) {
-        console.error(`Error from the request: ${error.message}`, error.stack);
         return NextResponse.json(
             { message: "An error occurred while processing the request", error: error.message },
             { status: 500 }
@@ -249,7 +247,6 @@ const PUT = async (req: Request) => {
             { status: 200 }
         );
     } catch (error: any) {
-        console.error(`Error from the request: ${error.message}`, error.stack);
         return NextResponse.json(
             { message: "An error occurred while processing the request", error: error.message },
             { status: 500 }

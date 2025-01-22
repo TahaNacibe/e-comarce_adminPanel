@@ -99,4 +99,107 @@ export default class PreferencesServices {
         
     }
 
+
+    //* get fee table data from db
+    getFeeTableData = async () => { 
+        try {
+            //* request data from server
+            const response = await fetch('/api/preferences/deliveryFee', {
+                method: "GET"
+            })
+
+            //* handle response
+            if(response.ok){
+                const data = await response.json()
+                return {success:true, message:"Delivery fee data loaded", data:data.data}
+            }
+
+            return {success:false, message:"Failed to load delivery fee data", data:response.status}
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                return { success: false, message: "Error loading delivery fee data", data: error.message }
+            }
+            return { success: false, message: "Error loading delivery fee data", data: "An error occurred" }
+        }
+    }
+
+
+    //* delete an fee item from the db
+    deleteFeeItem = async (feeId: string) => { 
+        try {
+            //* check if id is empty
+            if (!feeId) return { success: false, message: "Please provide the delivery fee id", data: "Empty id" }
+            //* request data from server
+            const response = await fetch(`/api/preferences/deliveryFee?id=${feeId}`, {
+                method: "DELETE"
+            })
+
+            //* handle response
+            if(response.ok){
+                const data = await response.json()
+                return {success:true, message:"Delivery fee deleted", data:data.message}
+            }
+            return {success:false, message:"Failed to delete delivery fee", data:response.status}
+        } catch (error : unknown) {
+            if(error instanceof Error){
+                return {success:false, message:"Error deleting delivery fee", data:error.message}
+            }
+            return {success:false, message:"Error deleting delivery fee", data:"An error occurred"}
+        }
+    }
+
+
+
+    //* create new fee item in db
+    createNewFeeItem = async (newFeeItem: { city: string, price: string, currency: string | null }) => {
+        try {
+            //* check if id is empty
+            if (!newFeeItem.city || !newFeeItem.price) return { success: false, message: "Please provide the delivery fee details", data: "Empty details" }
+            //* request data from server
+            const response = await fetch(`/api/preferences/deliveryFee`, {
+                method: "POST",
+                body: JSON.stringify(newFeeItem)
+            })
+
+            //* handle response
+            if(response.ok){
+                const data = await response.json()
+                return {success:true, message:"Delivery fee created", data:data.message}
+            }
+            return {success:false, message:"Failed to create delivery fee", data:response.status}
+        } catch (error : unknown) {
+            if(error instanceof Error){
+                return {success:false, message:"Error creating delivery fee", data:error.message}
+            }
+            return {success:false, message:"Error creating delivery fee", data:"An error occurred"}
+        }
+    }
+
+
+
+    //* update fee item in db
+    updateFeeItem = async (updatedItem: { city: string, price: string, currency: string | null }, feeId: string) => {
+        try {
+            //* check if id is empty
+            if (!feeId) return { success: false, message: "Please provide the delivery fee id", data: "Empty id" }
+            //* request data from server
+            const response = await fetch(`/api/preferences/deliveryFee?id=${feeId}`, {
+                method: "PUT",
+                body: JSON.stringify({ updatedItem })
+            })
+
+            //* handle response
+            if(response.ok){
+                const data = await response.json()
+                return {success:true, message:"Delivery fee updated", data:data.message}
+            }
+            return {success:false, message:"Failed to update delivery fee", data:response.status}
+        } catch (error : unknown) {
+            if(error instanceof Error){
+                return {success:false, message:"Error updating delivery fee", data:error.message}
+            }
+            return {success:false, message:"Error updating delivery fee", data:"An error occurred"}
+        }
+    }
+
 }

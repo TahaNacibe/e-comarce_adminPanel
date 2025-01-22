@@ -152,7 +152,6 @@ const GET = async (req: NextRequest) => {
               }, }
         );
     } catch (error:any) {
-        console.error(`Error fetching orders:`, error.toString());
         return new NextResponse(
             JSON.stringify({
                 message: "Failed to fetch orders",
@@ -225,7 +224,6 @@ const DELETE = async (req: NextRequest) => {
       return NextResponse.json({ message: `${deletedItems.count} Orders Deleted!` }, { status: 200 });
     } catch (error:any) {
       // Log the error for debugging (if in production, use proper logging)
-      console.error("Error during deletion:", error);
       return NextResponse.json({ message: "Error occurred while deleting", error: error.message }, { status: 500 });
     }
 };
@@ -310,6 +308,36 @@ if (isUpdateVerification) {
             where: { id: updateOrderId },
             data:rest
         })
+
+        if (updateTargetOrder.verified && updateTargetOrder.status != "CANCELED" && newOrder.status === "CANCELED") { 
+                // Update stock and sold counts in the database
+                await Promise.all(
+                    updateTargetOrder.orderMetaData.productsMetaDataList.map(async (product) => {
+                        await prisma.products.update({
+                            where: { id: product.productId },
+                            data: {
+                                stockCount: { increment: product.quantity },
+                                soldCount: { decrement: product.quantity },
+                            },
+                        });
+                    })
+                );
+        }
+
+        if (updateTargetOrder.verified && updateTargetOrder.status === "CANCELED" && newOrder.status !== "CANCELED") { 
+            // Update stock and sold counts in the database
+            await Promise.all(
+                updateTargetOrder.orderMetaData.productsMetaDataList.map(async (product) => {
+                    await prisma.products.update({
+                        where: { id: product.productId },
+                        data: {
+                            stockCount: { decrement: product.quantity },
+                            soldCount: { increment: product.quantity },
+                        },
+                    });
+                })
+            );
+        }
 
         return NextResponse.json({message:"Order updated!",updatedOrder},{status:200})
     } catch (error:any) {

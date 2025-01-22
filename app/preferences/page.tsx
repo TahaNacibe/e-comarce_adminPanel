@@ -32,6 +32,8 @@ import { User } from '@prisma/client';
 import { useTheme } from "@/app/providers/theme-provider"
 import SettingsInput from './components/settings_input';
 import { useRouter } from 'next/navigation';
+import DeliveryFeeTable from './components/fee_table';
+import LoadingWidget from '../components/loading_widget';
 
 const PreferencesPage = () => {
   // Shop Identity States
@@ -262,7 +264,8 @@ const PreferencesPage = () => {
               address: response.data.address,
                 isEditing: false
             })
-        }
+      }
+      setIsPageLoading(false)
     }
 
 
@@ -271,7 +274,6 @@ const PreferencesPage = () => {
       checkIfAuthorized()
       loadAuthUsers();
       getShopDetails()
-      setIsPageLoading(false)
     }
   }, [session]);
 
@@ -447,11 +449,10 @@ const PreferencesPage = () => {
                       Search and select a user to grant sub-admin privileges.
                     </DialogDescription>
                   </DialogHeader>
-                                  <>
-                                      <Input value={userSearchInput ?? ""} onChange={(e) => handleUserSearch(e.target.value)} />
-                                      <Badge className='w-fit' variant={"outline"}> Users &apos;{userSearchInput}&apos; </Badge>
-                                     
-                                              <Table>
+                  <>
+                  <Input value={userSearchInput ?? ""} onChange={(e) => handleUserSearch(e.target.value)} />
+                    <Badge className='w-fit' variant={"outline"}> Users &apos;{userSearchInput}&apos; </Badge>
+                    {loadingUsers ? <LoadingWidget /> :  <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>User</TableHead>
@@ -492,7 +493,7 @@ const PreferencesPage = () => {
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
+              </Table>}
 
                                               
                   </>
@@ -570,6 +571,19 @@ const PreferencesPage = () => {
       onCheckedChange={toggleTheme}
     />
               </div>
+            </CardContent>
+          </Card>
+
+           {/* fee and delivery section  */}
+           <Card>
+            <CardHeader>
+              <CardTitle>Delivery and fees</CardTitle>
+              <CardDescription>
+                set the Delivery fee for each city cities that aren't included won't show for the client be carful
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DeliveryFeeTable preferencesServices={preferencesServices} toast={toast} />
             </CardContent>
           </Card>
         </div>
